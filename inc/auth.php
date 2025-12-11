@@ -16,30 +16,43 @@ function debug_log($message)
 
 function login($username, $password)
 {
-    debug_log("Login attempt for user: '$username'");
+    $log = __DIR__ . '/../debug_login.txt';
+    $time = date('H:i:s');
+    file_put_contents($log, "[$time] Admin/Club Login attempt for: '$username'\n", FILE_APPEND);
 
     // 1. Check Super Admin
     if ($username === SUPER_ADMIN_USER) {
-        debug_log("User matches Super Admin. Verifying hash...");
+        file_put_contents($log, "[$time] User matches Super Admin. Verifying hash...\n", FILE_APPEND);
+        // Debug Config Hash
+        $config_hash = SUPER_ADMIN_PASS_HASH;
+        file_put_contents($log, "[$time] Config Hash Start: " . substr($config_hash, 0, 10) . "...\n", FILE_APPEND);
+
         if (password_verify($password, SUPER_ADMIN_PASS_HASH)) {
-            debug_log("Super Admin login successful.");
+            file_put_contents($log, "[$time] Super Admin login successful.\n", FILE_APPEND);
             $_SESSION['user_role'] = 'super_admin';
             $_SESSION['user_id'] = 0;
             $_SESSION['user_name'] = 'Super Admin';
             session_regenerate_id(true);
             return true;
         } else {
-            debug_log("Super Admin password mismatch.");
+            file_put_contents($log, "[$time] Super Admin password mismatch.\n", FILE_APPEND);
         }
     }
 
     // 2. Check Club Admin
     $clubs = get_clubs();
+    file_put_contents($log, "[$time] Checking against " . count($clubs) . " clubs.\n", FILE_APPEND);
+
     foreach ($clubs as $club) {
-        if ($club['login_name'] === $username && $club['active']) {
-            debug_log("Found club user: '{$club['name']}'. Verifying hash...");
+        if ($club['login_name'] === $username) {
+            if (!$club['active']) {
+                file_put_contents($log, "[$time] Club found but inactive: {$club['name']}\n", FILE_APPEND);
+                continue;
+            }
+
+            file_put_contents($log, "[$time] Found club user: '{$club['name']}'. Verifying hash...\n", FILE_APPEND);
             if (password_verify($password, $club['password_hash'])) {
-                debug_log("Club login successful.");
+                file_put_contents($log, "[$time] Club login successful.\n", FILE_APPEND);
                 $_SESSION['user_role'] = 'club_admin';
                 $_SESSION['user_id'] = $club['id'];
                 $_SESSION['user_name'] = $club['name'];
@@ -47,12 +60,12 @@ function login($username, $password)
                 session_regenerate_id(true);
                 return true;
             } else {
-                debug_log("Club password mismatch.");
+                file_put_contents($log, "[$time] Club password mismatch.\n", FILE_APPEND);
             }
         }
     }
 
-    debug_log("Login failed for user: '$username'");
+    file_put_contents($log, "[$time] Login failed for user: '$username'\n", FILE_APPEND);
     return false;
 }
 
