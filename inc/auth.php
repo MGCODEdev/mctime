@@ -18,30 +18,34 @@ function login($username, $password)
 {
     $log = __DIR__ . '/../debug_login.txt';
     $time = date('H:i:s');
-    file_put_contents($log, "[$time] Admin/Club Login attempt for: '$username'\n", FILE_APPEND);
+    file_put_contents($log, "[$time] Login attempt (DB) for: '$username'\n", FILE_APPEND);
 
-    // 1. Check Super Admin
-    if ($username === SUPER_ADMIN_USER) {
-        file_put_contents($log, "[$time] User matches Super Admin. Verifying hash...\n", FILE_APPEND);
-        // Debug Config Hash
-        $config_hash = SUPER_ADMIN_PASS_HASH;
-        file_put_contents($log, "[$time] Config Hash Start: " . substr($config_hash, 0, 10) . "...\n", FILE_APPEND);
+    $pdo = get_db();
 
-        if (password_verify($password, SUPER_ADMIN_PASS_HASH)) {
-            file_put_contents($log, "[$time] Super Admin login successful.\n", FILE_APPEND);
-            $_SESSION['user_role'] = 'super_admin';
-            $_SESSION['user_id'] = 0;
-            $_SESSION['user_name'] = 'Super Admin';
+    // 1. Check Users Table (Super Admin & others)
+    $stmt = $pdo->prepare("SELECT * FROM users WHERE username = :username");
+    $stmt->execute([':username' => $username]);
+    $user = $stmt->fetch();
+
+    if ($user) {
+        file_put_contents($log, "[$time] User found in 'users' table. Role: {$user['role']}\n", FILE_APPEND);
+        if (password_verify($password, $user['password_hash'])) {
+            file_put_contents($log, "[$time] Password verified.\n", FILE_APPEND);
+            $_SESSION['user_role'] = $user['role']; // e.g., 'super_admin'
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['user_name'] = $user['username'];
             session_regenerate_id(true);
             return true;
         } else {
-            file_put_contents($log, "[$time] Super Admin password mismatch.\n", FILE_APPEND);
+            file_put_contents($log, "[$time] Password mismatch for DB user.\n", FILE_APPEND);
         }
+    } else {
+        file_put_contents($log, "[$time] User not found in 'users' table. Checking Clubs...\n", FILE_APPEND);
     }
 
-    // 2. Check Club Admin
+    // 2. Check Club Admin (Legacy/Secondary table)
+    // Ideally we would migrate clubs to users table too, but for now keep separate as per plan.
     $clubs = get_clubs();
-    file_put_contents($log, "[$time] Checking against " . count($clubs) . " clubs.\n", FILE_APPEND);
 
     foreach ($clubs as $club) {
         if ($club['login_name'] === $username) {
