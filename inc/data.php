@@ -40,23 +40,26 @@ function save_club($club_data)
     $pdo = db();
     if (isset($club_data['id']) && $club_data['id']) {
         // Update
-        $sql = "UPDATE clubs SET name=:name, shortname=:shortname, color=:color, active=:active, logo=:logo WHERE id=:id";
+        $sql = "UPDATE clubs SET name=:name, shortname=:shortname, color=:color, active=:active, logo=:logo, email=:email, admin_name=:admin_name, phone=:phone WHERE id=:id";
         $params = [
             ':id' => $club_data['id'],
             ':name' => $club_data['name'],
             ':shortname' => $club_data['shortname'],
             ':color' => $club_data['color'],
             ':active' => isset($club_data['active']) ? $club_data['active'] : 1,
-            ':logo' => $club_data['logo'] ?? null
+            ':logo' => $club_data['logo'] ?? null,
+            ':email' => $club_data['email'] ?? null,
+            ':admin_name' => $club_data['admin_name'] ?? null,
+            ':phone' => $club_data['phone'] ?? null
         ];
 
         // Only update password if provided
         if (!empty($club_data['password_hash'])) {
-            $sql = "UPDATE clubs SET name=:name, shortname=:shortname, login_name=:login_name, password_hash=:password_hash, color=:color, active=:active, logo=:logo WHERE id=:id";
+            $sql = "UPDATE clubs SET name=:name, shortname=:shortname, login_name=:login_name, password_hash=:password_hash, color=:color, active=:active, logo=:logo, email=:email, admin_name=:admin_name, phone=:phone WHERE id=:id";
             $params[':login_name'] = $club_data['login_name'];
             $params[':password_hash'] = $club_data['password_hash'];
         } elseif (isset($club_data['login_name'])) {
-            $sql = "UPDATE clubs SET name=:name, shortname=:shortname, login_name=:login_name, color=:color, active=:active, logo=:logo WHERE id=:id";
+            $sql = "UPDATE clubs SET name=:name, shortname=:shortname, login_name=:login_name, color=:color, active=:active, logo=:logo, email=:email, admin_name=:admin_name, phone=:phone WHERE id=:id";
             $params[':login_name'] = $club_data['login_name'];
         }
 
@@ -65,7 +68,7 @@ function save_club($club_data)
 
     } else {
         // Insert
-        $sql = "INSERT INTO clubs (name, shortname, login_name, password_hash, color, active, logo) VALUES (:name, :shortname, :login_name, :password_hash, :color, :active, :logo)";
+        $sql = "INSERT INTO clubs (name, shortname, login_name, password_hash, color, active, logo, email, admin_name, phone) VALUES (:name, :shortname, :login_name, :password_hash, :color, :active, :logo, :email, :admin_name, :phone)";
         $stmt = $pdo->prepare($sql);
         return $stmt->execute([
             ':name' => $club_data['name'],
@@ -74,7 +77,10 @@ function save_club($club_data)
             ':password_hash' => $club_data['password_hash'],
             ':color' => $club_data['color'],
             ':active' => isset($club_data['active']) ? $club_data['active'] : 1,
-            ':logo' => $club_data['logo'] ?? null
+            ':logo' => $club_data['logo'] ?? null,
+            ':email' => $club_data['email'] ?? null,
+            ':admin_name' => $club_data['admin_name'] ?? null,
+            ':phone' => $club_data['phone'] ?? null
         ]);
     }
 }

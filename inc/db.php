@@ -38,7 +38,10 @@ function init_db($pdo)
         password_hash VARCHAR(255),
         color VARCHAR(20),
         active TINYINT DEFAULT 1,
-        logo VARCHAR(255)
+        logo VARCHAR(255),
+        email VARCHAR(100),
+        admin_name VARCHAR(100),
+        phone VARCHAR(50)
     ) ENGINE=InnoDB");
 
     // Events Table
