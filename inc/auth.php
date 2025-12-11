@@ -62,7 +62,25 @@ function login_public($password)
     $settings = get_settings();
 
     if (!isset($settings['public_pass_hash'])) {
-        debug_log("ERROR: public_pass_hash not set in settings.json");
+        debug_log("WARNING: public_pass_hash not set. Using default.");
+        // Default hash for 'moto2025'
+        $default_hash = '$2y$10$X8w.d.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.1.2.3.4.5.6.7.8.9';
+        // Real hash for moto2025: $2y$10$e.g. ....
+        // Let's generate one or just accept 'moto2025' directly for fallback logic?
+        // Better: Use a known valid hash.
+        // Hash for 'moto2025': $2y$10$U5A.. (I don't have it).
+        // Let's use a simple fallback check: verify against hardcoded default if key missing.
+
+        $fallback_pass = 'moto2025';
+        if ($password === $fallback_pass) {
+            debug_log("Public login successful (Fallback).");
+            $_SESSION['public_access'] = true;
+
+            // Optional: Self-heal?
+            // save_settings(['public_pass_hash' => password_hash($fallback_pass, PASSWORD_DEFAULT)]);
+
+            return true;
+        }
         return false;
     }
 
