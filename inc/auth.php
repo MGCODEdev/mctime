@@ -58,40 +58,38 @@ function login($username, $password)
 
 function login_public($password)
 {
-    debug_log("Public login attempt.");
+    // Log to file for visibility
+    $log = __DIR__ . '/../debug_login.txt';
+    $time = date('H:i:s');
+    file_put_contents($log, "[$time] Public login attempt...\n", FILE_APPEND);
+
     $settings = get_settings();
 
     if (!isset($settings['public_pass_hash'])) {
-        debug_log("WARNING: public_pass_hash not set. Using default.");
-        // Default hash for 'moto2025'
-        $default_hash = '$2y$10$X8w.d.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.1.2.3.4.5.6.7.8.9';
-        // Real hash for moto2025: $2y$10$e.g. ....
-        // Let's generate one or just accept 'moto2025' directly for fallback logic?
-        // Better: Use a known valid hash.
-        // Hash for 'moto2025': $2y$10$U5A.. (I don't have it).
-        // Let's use a simple fallback check: verify against hardcoded default if key missing.
+        file_put_contents($log, "[$time] ERROR: public_pass_hash missing from settings.\n", FILE_APPEND);
 
+        // Fallback
         $fallback_pass = 'moto2025';
         if ($password === $fallback_pass) {
-            debug_log("Public login successful (Fallback).");
+            file_put_contents($log, "[$time] Fallback allowed.\n", FILE_APPEND);
             $_SESSION['public_access'] = true;
-
-            // Optional: Self-heal?
-            // save_settings(['public_pass_hash' => password_hash($fallback_pass, PASSWORD_DEFAULT)]);
-
             return true;
         }
         return false;
     }
 
-    if (password_verify($password, $settings['public_pass_hash'])) {
-        debug_log("Public login successful.");
+    $hash = $settings['public_pass_hash'];
+    file_put_contents($log, "[$time] Hash found: " . substr($hash, 0, 10) . "...\n", FILE_APPEND);
+
+    if (password_verify($password, $hash)) {
+        file_put_contents($log, "[$time] SUCCESS: Password verified.\n", FILE_APPEND);
         $_SESSION['public_access'] = true;
         return true;
+    } else {
+        file_put_contents($log, "[$time] FAIL: Hash verify failed.\n", FILE_APPEND);
+        file_put_contents($log, "[$time] Provided Pass Length: " . strlen($password) . "\n", FILE_APPEND);
+        return false;
     }
-
-    debug_log("Public login failed. Hash mismatch.");
-    return false;
 }
 
 function logout()
