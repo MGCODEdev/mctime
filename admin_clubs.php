@@ -16,9 +16,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $password = $_POST['password'];
         $active = isset($_POST['active']);
         $logo_data = $_POST['logo_data'] ?? ''; // Base64 encoded image
-        $email = trim($_POST['email']);
-        $admin_name = trim($_POST['admin_name']);
-        $phone = trim($_POST['phone']);
 
         if ($name && $login_name) {
             $club_data = [
@@ -27,10 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 'shortname' => $shortname,
                 'color' => $color,
                 'login_name' => $login_name,
-                'active' => $active,
-                'email' => $email,
-                'admin_name' => $admin_name,
-                'phone' => $phone
+                'active' => $active
             ];
 
             // Handle Logo Upload
@@ -157,7 +151,6 @@ $clubs = get_clubs();
                             <th>Logo</th>
                             <th>Name</th>
                             <th>Kürzel</th>
-                            <th>Admin / Kontakt</th>
                             <th>Login</th>
                             <th>Farbe</th>
                             <th>Status</th>
@@ -180,13 +173,6 @@ $clubs = get_clubs();
                                 </td>
                                 <td><?php echo htmlspecialchars($club['name']); ?></td>
                                 <td><?php echo htmlspecialchars($club['shortname']); ?></td>
-                                <td>
-                                    <small>
-                                        <?php echo htmlspecialchars($club['admin_name'] ?? ''); ?><br>
-                                        <a href="mailto:<?php echo htmlspecialchars($club['email'] ?? ''); ?>"><?php echo htmlspecialchars($club['email'] ?? ''); ?></a><br>
-                                        <?php echo htmlspecialchars($club['phone'] ?? ''); ?>
-                                    </small>
-                                </td>
                                 <td><?php echo htmlspecialchars($club['login_name']); ?></td>
                                 <td><span class="badge rounded-pill"
                                         style="background-color: <?php echo htmlspecialchars($club['color']); ?>; width: 24px; height: 24px;">&nbsp;</span>
@@ -229,22 +215,6 @@ $clubs = get_clubs();
                                     <label class="form-label">Kürzel</label>
                                     <input type="text" class="form-control" name="shortname" id="club_shortname">
                                 </div>
-                                
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label class="form-label">Admin Name</label>
-                                        <input type="text" class="form-control" name="admin_name" id="club_admin_name">
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label class="form-label">Telefon</label>
-                                        <input type="text" class="form-control" name="phone" id="club_phone">
-                                    </div>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Email</label>
-                                    <input type="email" class="form-control" name="email" id="club_email">
-                                </div>
-
                                 <div class="mb-3">
                                     <label class="form-label">Farbe</label>
                                     <input type="color" class="form-control form-control-color w-100" name="color"
@@ -338,9 +308,6 @@ $clubs = get_clubs();
             document.getElementById('club_id').value = club.id;
             document.getElementById('club_name').value = club.name;
             document.getElementById('club_shortname').value = club.shortname;
-            document.getElementById('club_admin_name').value = club.admin_name || '';
-            document.getElementById('club_email').value = club.email || '';
-            document.getElementById('club_phone').value = club.phone || '';
             document.getElementById('club_color').value = club.color;
             document.getElementById('club_login_name').value = club.login_name;
             document.getElementById('club_active').checked = club.active;
@@ -368,9 +335,6 @@ $clubs = get_clubs();
             document.getElementById('club_id').value = '';
             document.getElementById('club_name').value = '';
             document.getElementById('club_shortname').value = '';
-            document.getElementById('club_admin_name').value = '';
-            document.getElementById('club_email').value = '';
-            document.getElementById('club_phone').value = '';
             document.getElementById('club_color').value = '#d32f2f';
             document.getElementById('club_login_name').value = '';
             document.getElementById('club_active').checked = true;

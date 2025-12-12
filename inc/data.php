@@ -1,93 +1,87 @@
 <?php
 require_once __DIR__ . '/db.php';
 
-// Helper to get DB connection
-function db()
-{
-    return get_db();
-}
-
 // --- Clubs ---
 
 function get_clubs()
 {
-    $stmt = db()->query("SELECT * FROM clubs WHERE active = 1 ORDER BY name ASC");
-    return $stmt->fetchAll();
-}
-
-function get_all_clubs_admin()
-{
-    $stmt = db()->query("SELECT * FROM clubs ORDER BY name ASC");
+    $pdo = get_db();
+    $stmt = $pdo->query("SELECT * FROM clubs ORDER BY name ASC");
     return $stmt->fetchAll();
 }
 
 function get_club($id)
 {
-    $stmt = db()->prepare("SELECT * FROM clubs WHERE id = :id");
+    $pdo = get_db();
+    $stmt = $pdo->prepare("SELECT * FROM clubs WHERE id = :id");
     $stmt->execute([':id' => $id]);
-    return $stmt->fetch();
-}
-
-function get_club_by_login($login_name)
-{
-    $stmt = db()->prepare("SELECT * FROM clubs WHERE login_name = :login_name");
-    $stmt->execute([':login_name' => $login_name]);
     return $stmt->fetch();
 }
 
 function save_club($club_data)
 {
-    $pdo = db();
+    $pdo = get_db();
+
+    // Check if update or insert
+    $is_update = false;
     if (isset($club_data['id']) && $club_data['id']) {
-        // Update
-        $sql = "UPDATE clubs SET name=:name, shortname=:shortname, color=:color, active=:active, logo=:logo, email=:email, admin_name=:admin_name, phone=:phone WHERE id=:id";
-        $params = [
-            ':id' => $club_data['id'],
-            ':name' => $club_data['name'],
-            ':shortname' => $club_data['shortname'],
-            ':color' => $club_data['color'],
-            ':active' => isset($club_data['active']) ? $club_data['active'] : 1,
-            ':logo' => $club_data['logo'] ?? null,
-            ':email' => $club_data['email'] ?? null,
-            ':admin_name' => $club_data['admin_name'] ?? null,
-            ':phone' => $club_data['phone'] ?? null
-        ];
-
-        // Only update password if provided
-        if (!empty($club_data['password_hash'])) {
-            $sql = "UPDATE clubs SET name=:name, shortname=:shortname, login_name=:login_name, password_hash=:password_hash, color=:color, active=:active, logo=:logo, email=:email, admin_name=:admin_name, phone=:phone WHERE id=:id";
-            $params[':login_name'] = $club_data['login_name'];
-            $params[':password_hash'] = $club_data['password_hash'];
-        } elseif (isset($club_data['login_name'])) {
-            $sql = "UPDATE clubs SET name=:name, shortname=:shortname, login_name=:login_name, color=:color, active=:active, logo=:logo, email=:email, admin_name=:admin_name, phone=:phone WHERE id=:id";
-            $params[':login_name'] = $club_data['login_name'];
+        // Check if exists
+        if (get_club($club_data['id'])) {
+            $is_update = true;
         }
-
-        $stmt = $pdo->prepare($sql);
-        return $stmt->execute($params);
-
-    } else {
-        // Insert
-        $sql = "INSERT INTO clubs (name, shortname, login_name, password_hash, color, active, logo, email, admin_name, phone) VALUES (:name, :shortname, :login_name, :password_hash, :color, :active, :logo, :email, :admin_name, :phone)";
-        $stmt = $pdo->prepare($sql);
-        return $stmt->execute([
-            ':name' => $club_data['name'],
-            ':shortname' => $club_data['shortname'],
-            ':login_name' => $club_data['login_name'],
-            ':password_hash' => $club_data['password_hash'],
-            ':color' => $club_data['color'],
-            ':active' => isset($club_data['active']) ? $club_data['active'] : 1,
-            ':logo' => $club_data['logo'] ?? null,
-            ':email' => $club_data['email'] ?? null,
-            ':admin_name' => $club_data['admin_name'] ?? null,
-            ':phone' => $club_data['phone'] ?? null
-        ]);
     }
+
+    if ($is_update) {
+        $sql = "UPDATE clubs SET 
+                name = :name, 
+                shortname = :shortname, 
+                login_name = :login_name, 
+                password_hash = :password_hash, 
+                color = :color, 
+                active = :active, 
+                logo = :logo 
+                WHERE id = :id";
+    } else {
+        $sql = "INSERT INTO clubs (name, shortname, login_name, password_hash, color, active, logo) 
+                VALUES (:name, :shortname, :login_name, :password_hash, :color, :active, :logo)";
+        // Remove id from params for insert if it's auto-increment, unless preserving IDs.
+        // Our migration preserved IDs.
+        // If the ID is passed and we want to force it (migration scenario), we should include it.
+        // But for normal usage (auto-increment), we verify.
+        // If club_data['id'] is numeric and we are inserting, we might want to let DB handle it 
+        // OR properly handle the ID if it was passed.
+        // Let's assume for NEW clubs (id empty or null), we omit ID.
+        // If ID is set but not found, we insert with that ID (unlikely for auto-increment).
+
+        if (isset($club_data['id']) && !empty($club_data['id'])) {
+            $sql = "INSERT INTO clubs (id, name, shortname, login_name, password_hash, color, active, logo) 
+                VALUES (:id, :name, :shortname, :login_name, :password_hash, :color, :active, :logo)";
+        }
+    }
+
+    $stmt = $pdo->prepare($sql);
+
+    $params = [
+        ':name' => $club_data['name'],
+        ':shortname' => $club_data['shortname'] ?? '',
+        ':login_name' => $club_data['login_name'] ?? null,
+        ':password_hash' => $club_data['password_hash'] ?? null,
+        ':color' => $club_data['color'] ?? '#000000',
+        ':active' => isset($club_data['active']) && $club_data['active'] ? 1 : 0,
+        ':logo' => $club_data['logo'] ?? null
+    ];
+
+    if ($is_update || (isset($club_data['id']) && !empty($club_data['id']))) {
+        $params[':id'] = $club_data['id'];
+    }
+
+    return $stmt->execute($params);
 }
 
 function delete_club($id)
 {
-    $stmt = db()->prepare("DELETE FROM clubs WHERE id = :id");
+    $pdo = get_db();
+    $stmt = $pdo->prepare("DELETE FROM clubs WHERE id = :id");
     return $stmt->execute([':id' => $id]);
 }
 
@@ -95,63 +89,51 @@ function delete_club($id)
 
 function get_events($year)
 {
-    $start = "$year-01-01";
-    $end = "$year-12-31";
-    return get_all_events_range($start, $end);
+    // Return events for a specific year
+    $pdo = get_db();
+    $stmt = $pdo->prepare("SELECT * FROM events WHERE YEAR(date) = :year ORDER BY date ASC, time_from ASC");
+    $stmt->execute([':year' => $year]);
+    return $stmt->fetchAll();
 }
 
 function get_all_events_range($start_date, $end_date)
 {
-    $sql = "SELECT * FROM events WHERE date BETWEEN :start AND :end ORDER BY date ASC, time_from ASC";
-    $stmt = db()->prepare($sql);
+    $pdo = get_db();
+    $stmt = $pdo->prepare("SELECT * FROM events WHERE date BETWEEN :start AND :end ORDER BY date ASC, time_from ASC");
     $stmt->execute([':start' => $start_date, ':end' => $end_date]);
     return $stmt->fetchAll();
 }
 
-function get_events_by_club($club_id, $year = null)
-{
-    $sql = "SELECT * FROM events WHERE club_id = :club_id";
-    $params = [':club_id' => $club_id];
-
-    if ($year) {
-        $sql .= " AND date LIKE :year";
-        $params[':year'] = "$year%";
-    }
-
-    $sql .= " ORDER BY date DESC";
-
-    $stmt = db()->prepare($sql);
-    $stmt->execute($params);
-    return $stmt->fetchAll();
-}
-
-function get_event($id)
-{
-    $stmt = db()->prepare("SELECT * FROM events WHERE id = :id");
-    $stmt->execute([':id' => $id]);
-    return $stmt->fetch();
-}
-
-
 function save_event($event_data)
 {
-    $pdo = db();
+    $pdo = get_db();
+    $is_update = false;
 
-    // Check if ID exists (Update vs Insert)
-    // For new events, we might generate ID or let DB handle it?
-    // Current setup uses VARCHAR ID. Let's stick to generating UUIDs or using existing IDs.
-
-    if (empty($event_data['id'])) {
-        $event_data['id'] = uniqid(); // Generate ID if missing
+    if (isset($event_data['id']) && !empty($event_data['id'])) {
+        // Check existence
+        $stmt = $pdo->prepare("SELECT id FROM events WHERE id = :id");
+        $stmt->execute([':id' => $event_data['id']]);
+        if ($stmt->fetch()) {
+            $is_update = true;
+        }
+    } else {
+        // Generate a new ID if not provided (keeping string IDs for now as per schema)
+        $event_data['id'] = uniqid();
     }
 
-    // Check if exists
-    $existing = get_event($event_data['id']);
-
-    if ($existing) {
-        $sql = "UPDATE events SET club_id=:club_id, title=:title, date=:date, time_from=:time_from, time_to=:time_to, location=:location, description=:description WHERE id=:id";
+    if ($is_update) {
+        $sql = "UPDATE events SET 
+                club_id = :club_id, 
+                title = :title, 
+                date = :date, 
+                time_from = :time_from, 
+                time_to = :time_to, 
+                location = :location, 
+                description = :description 
+                WHERE id = :id";
     } else {
-        $sql = "INSERT INTO events (id, club_id, title, date, time_from, time_to, location, description) VALUES (:id, :club_id, :title, :date, :time_from, :time_to, :location, :description)";
+        $sql = "INSERT INTO events (id, club_id, title, date, time_from, time_to, location, description) 
+                VALUES (:id, :club_id, :title, :date, :time_from, :time_to, :location, :description)";
     }
 
     $stmt = $pdo->prepare($sql);
@@ -160,16 +142,17 @@ function save_event($event_data)
         ':club_id' => $event_data['club_id'],
         ':title' => $event_data['title'],
         ':date' => $event_data['date'],
-        ':time_from' => $event_data['time_from'],
-        ':time_to' => $event_data['time_to'],
-        ':location' => $event_data['location'],
-        ':description' => $event_data['description']
+        ':time_from' => $event_data['time_from'] ?? '',
+        ':time_to' => $event_data['time_to'] ?? '',
+        ':location' => $event_data['location'] ?? '',
+        ':description' => $event_data['description'] ?? ''
     ]);
 }
 
 function delete_event($id, $year = null)
 {
-    $stmt = db()->prepare("DELETE FROM events WHERE id = :id");
+    $pdo = get_db();
+    $stmt = $pdo->prepare("DELETE FROM events WHERE id = :id");
     return $stmt->execute([':id' => $id]);
 }
 
@@ -177,23 +160,25 @@ function delete_event($id, $year = null)
 
 function get_settings()
 {
-    $stmt = db()->query("SELECT * FROM settings");
-    $rows = $stmt->fetchAll();
-    $settings = [];
-    foreach ($rows as $row) {
-        $settings[$row['key']] = $row['value'];
-    }
-    return $settings;
+    $pdo = get_db();
+    $stmt = $pdo->query("SELECT `key`, value FROM settings");
+    $results = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+    return $results ?: [];
 }
 
 function save_settings($settings)
 {
-    $pdo = db();
-    $sql = "INSERT INTO settings (`key`, value) VALUES (:key, :value) ON DUPLICATE KEY UPDATE value = :value";
-    $stmt = $pdo->prepare($sql);
-
-    foreach ($settings as $key => $value) {
-        $stmt->execute([':key' => $key, ':value' => $value]);
+    $pdo = get_db();
+    $pdo->beginTransaction();
+    try {
+        $stmt = $pdo->prepare("INSERT INTO settings (`key`, value) VALUES (:key, :value) ON DUPLICATE KEY UPDATE value = :value");
+        foreach ($settings as $key => $value) {
+            $stmt->execute([':key' => $key, ':value' => $value]);
+        }
+        $pdo->commit();
+        return true;
+    } catch (Exception $e) {
+        $pdo->rollBack();
+        return false;
     }
-    return true;
 }

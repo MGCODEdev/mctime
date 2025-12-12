@@ -107,6 +107,9 @@ if (is_club_admin()) {
                         <a class="nav-link" href="admin_clubs.php">Clubs</a>
                     <?php endif; ?>
                     <a class="nav-link active" href="admin_events.php">Termine</a>
+                    <?php if (is_super_admin()): ?>
+                        <a class="nav-link" href="admin_backup.php">Backup</a>
+                    <?php endif; ?>
                     <a class="nav-link" href="logout.php">Logout</a>
                 </div>
             </div>
