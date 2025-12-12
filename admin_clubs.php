@@ -17,14 +17,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $active = isset($_POST['active']);
         $logo_data = $_POST['logo_data'] ?? ''; // Base64 encoded image
 
+        // New Fields
+        $contact_email = trim($_POST['contact_email'] ?? '');
+        $website = trim($_POST['website'] ?? '');
+        $president = trim($_POST['president'] ?? '');
+        $vice_president = trim($_POST['vice_president'] ?? '');
+        $meeting_place = trim($_POST['meeting_place'] ?? '');
+        $meeting_time = trim($_POST['meeting_time'] ?? '');
+        $founded_date = $_POST['founded_date'] ?? null;
+
         if ($name && $login_name) {
+            // Validation
+            if ($contact_email && !filter_var($contact_email, FILTER_VALIDATE_EMAIL)) {
+                $error = "Ungültige E-Mail-Adresse.";
+            }
+            if ($website && !filter_var($website, FILTER_VALIDATE_URL)) {
+                $error = "Ungültige Webseiten-URL.";
+            }
+
             $club_data = [
                 'id' => $id,
                 'name' => $name,
                 'shortname' => $shortname,
                 'color' => $color,
                 'login_name' => $login_name,
-                'active' => $active
+                'active' => $active,
+                'contact_email' => $contact_email,
+                'website' => $website,
+                'president' => $president,
+                'vice_president' => $vice_president,
+                'meeting_place' => $meeting_place,
+                'meeting_time' => $meeting_time,
+                'founded_date' => $founded_date
             ];
 
             // Handle Logo Upload
@@ -205,47 +229,107 @@ $clubs = get_clubs();
                         <input type="hidden" name="id" id="club_id">
                         <input type="hidden" name="logo_data" id="logo_data">
 
-                        <div class="row">
-                            <div class="col-md-8">
-                                <div class="mb-3">
-                                    <label class="form-label">Name</label>
-                                    <input type="text" class="form-control" name="name" id="club_name" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Kürzel</label>
-                                    <input type="text" class="form-control" name="shortname" id="club_shortname">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Farbe</label>
-                                    <input type="color" class="form-control form-control-color w-100" name="color"
-                                        id="club_color" value="#d32f2f">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Login Name</label>
-                                    <input type="text" class="form-control" name="login_name" id="club_login_name"
-                                        required>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Passwort (leer lassen zum Beibehalten)</label>
-                                    <input type="password" class="form-control" name="password" id="club_password">
-                                </div>
-                                <div class="form-check mb-3">
-                                    <input class="form-check-input" type="checkbox" name="active" id="club_active"
-                                        checked>
-                                    <label class="form-check-label" for="club_active">Aktiv</label>
+                        <ul class="nav nav-tabs mb-3" id="clubTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="general-tab" data-bs-toggle="tab"
+                                    data-bs-target="#general" type="button" role="tab"
+                                    aria-selected="true">Allgemein</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="details-tab" data-bs-toggle="tab" data-bs-target="#details"
+                                    type="button" role="tab" aria-selected="false">Details</button>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content" id="clubTabsContent">
+                            <!-- General Tab -->
+                            <div class="tab-pane fade show active" id="general" role="tabpanel">
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <div class="mb-3">
+                                            <label class="form-label">Name</label>
+                                            <input type="text" class="form-control" name="name" id="club_name" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Kürzel</label>
+                                            <input type="text" class="form-control" name="shortname"
+                                                id="club_shortname">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Farbe</label>
+                                            <input type="color" class="form-control form-control-color w-100"
+                                                name="color" id="club_color" value="#d32f2f">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Login Name</label>
+                                            <input type="text" class="form-control" name="login_name"
+                                                id="club_login_name" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Passwort <small class="text-muted">(leer lassen
+                                                    zum Beibehalten)</small></label>
+                                            <input type="password" class="form-control" name="password"
+                                                id="club_password">
+                                        </div>
+                                        <div class="form-check mb-3">
+                                            <input class="form-check-input" type="checkbox" name="active"
+                                                id="club_active" checked>
+                                            <label class="form-check-label" for="club_active">Aktiv</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 text-center">
+                                        <label class="form-label">Logo</label>
+                                        <div class="mb-3">
+                                            <input type="file" class="form-control" id="logo_input" accept="image/*">
+                                        </div>
+                                        <div class="img-container mb-2">
+                                            <img id="image_preview" src="" style="max-width: 100%; display: none;">
+                                        </div>
+                                        <button type="button" class="btn btn-sm btn-secondary" id="crop_btn"
+                                            style="display: none;">Zuschneiden</button>
+                                        <div id="result_preview" class="mt-2"></div>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="col-md-4 text-center">
-                                <label class="form-label">Logo</label>
-                                <div class="mb-3">
-                                    <input type="file" class="form-control" id="logo_input" accept="image/*">
+
+                            <!-- Details Tab -->
+                            <div class="tab-pane fade" id="details" role="tabpanel">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Kontakt E-Mail</label>
+                                        <input type="email" class="form-control" name="contact_email"
+                                            id="club_contact_email">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Webseite</label>
+                                        <input type="url" class="form-control" name="website" id="club_website"
+                                            placeholder="https://...">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Präsident</label>
+                                        <input type="text" class="form-control" name="president" id="club_president">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Vize-Präsident</label>
+                                        <input type="text" class="form-control" name="vice_president"
+                                            id="club_vice_president">
+                                    </div>
+                                    <div class="col-md-12 mb-3">
+                                        <label class="form-label">Stammlokal / Treffpunkt</label>
+                                        <input type="text" class="form-control" name="meeting_place"
+                                            id="club_meeting_place">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Treffzeit</label>
+                                        <input type="text" class="form-control" name="meeting_time"
+                                            id="club_meeting_time" placeholder="z.B. Jeden 1. Freitag">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Gründungsdatum</label>
+                                        <input type="date" class="form-control" name="founded_date"
+                                            id="club_founded_date">
+                                    </div>
                                 </div>
-                                <div class="img-container mb-2">
-                                    <img id="image_preview" src="" style="max-width: 100%; display: none;">
-                                </div>
-                                <button type="button" class="btn btn-sm btn-secondary" id="crop_btn"
-                                    style="display: none;">Zuschneiden</button>
-                                <div id="result_preview" class="mt-2"></div>
                             </div>
                         </div>
                     </div>
@@ -313,6 +397,15 @@ $clubs = get_clubs();
             document.getElementById('club_active').checked = club.active;
             document.getElementById('club_password').value = '';
 
+            // New Fields
+            document.getElementById('club_contact_email').value = club.contact_email || '';
+            document.getElementById('club_website').value = club.website || '';
+            document.getElementById('club_president').value = club.president || '';
+            document.getElementById('club_vice_president').value = club.vice_president || '';
+            document.getElementById('club_meeting_place').value = club.meeting_place || '';
+            document.getElementById('club_meeting_time').value = club.meeting_time || '';
+            document.getElementById('club_founded_date').value = club.founded_date || '';
+
             // Reset Cropper
             if (cropper) {
                 cropper.destroy();
@@ -328,6 +421,11 @@ $clubs = get_clubs();
                 resultPreview.innerHTML = '';
             }
 
+            // Switch to first tab
+            const firstTabEl = document.querySelector('#clubTabs button[data-bs-target="#general"]');
+            const tab = new bootstrap.Tab(firstTabEl);
+            tab.show();
+
             new bootstrap.Modal(document.getElementById('editClubModal')).show();
         }
 
@@ -340,6 +438,15 @@ $clubs = get_clubs();
             document.getElementById('club_active').checked = true;
             document.getElementById('club_password').value = '';
 
+            // Clear New Fields
+            document.getElementById('club_contact_email').value = '';
+            document.getElementById('club_website').value = '';
+            document.getElementById('club_president').value = '';
+            document.getElementById('club_vice_president').value = '';
+            document.getElementById('club_meeting_place').value = '';
+            document.getElementById('club_meeting_time').value = '';
+            document.getElementById('club_founded_date').value = '';
+
             if (cropper) {
                 cropper.destroy();
                 image.style.display = 'none';
@@ -348,6 +455,11 @@ $clubs = get_clubs();
             input.value = '';
             logoData.value = '';
             resultPreview.innerHTML = '';
+
+            // Switch to first tab
+            const firstTabEl = document.querySelector('#clubTabs button[data-bs-target="#general"]');
+            const tab = new bootstrap.Tab(firstTabEl);
+            tab.show();
         }
     </script>
 </body>

@@ -39,23 +39,26 @@ function save_club($club_data)
                 password_hash = :password_hash, 
                 color = :color, 
                 active = :active, 
-                logo = :logo 
+                logo = :logo,
+                contact_email = :contact_email,
+                website = :website,
+                president = :president,
+                vice_president = :vice_president,
+                meeting_place = :meeting_place,
+                meeting_time = :meeting_time,
+                founded_date = :founded_date
                 WHERE id = :id";
     } else {
-        $sql = "INSERT INTO clubs (name, shortname, login_name, password_hash, color, active, logo) 
-                VALUES (:name, :shortname, :login_name, :password_hash, :color, :active, :logo)";
-        // Remove id from params for insert if it's auto-increment, unless preserving IDs.
-        // Our migration preserved IDs.
-        // If the ID is passed and we want to force it (migration scenario), we should include it.
-        // But for normal usage (auto-increment), we verify.
-        // If club_data['id'] is numeric and we are inserting, we might want to let DB handle it 
-        // OR properly handle the ID if it was passed.
-        // Let's assume for NEW clubs (id empty or null), we omit ID.
-        // If ID is set but not found, we insert with that ID (unlikely for auto-increment).
+        $sql = "INSERT INTO clubs (name, shortname, login_name, password_hash, color, active, logo, 
+                contact_email, website, president, vice_president, meeting_place, meeting_time, founded_date) 
+                VALUES (:name, :shortname, :login_name, :password_hash, :color, :active, :logo, 
+                :contact_email, :website, :president, :vice_president, :meeting_place, :meeting_time, :founded_date)";
 
         if (isset($club_data['id']) && !empty($club_data['id'])) {
-            $sql = "INSERT INTO clubs (id, name, shortname, login_name, password_hash, color, active, logo) 
-                VALUES (:id, :name, :shortname, :login_name, :password_hash, :color, :active, :logo)";
+            $sql = "INSERT INTO clubs (id, name, shortname, login_name, password_hash, color, active, logo, 
+                contact_email, website, president, vice_president, meeting_place, meeting_time, founded_date) 
+                VALUES (:id, :name, :shortname, :login_name, :password_hash, :color, :active, :logo, 
+                :contact_email, :website, :president, :vice_president, :meeting_place, :meeting_time, :founded_date)";
         }
     }
 
@@ -68,7 +71,14 @@ function save_club($club_data)
         ':password_hash' => $club_data['password_hash'] ?? null,
         ':color' => $club_data['color'] ?? '#000000',
         ':active' => isset($club_data['active']) && $club_data['active'] ? 1 : 0,
-        ':logo' => $club_data['logo'] ?? null
+        ':logo' => $club_data['logo'] ?? null,
+        ':contact_email' => $club_data['contact_email'] ?? null,
+        ':website' => $club_data['website'] ?? null,
+        ':president' => $club_data['president'] ?? null,
+        ':vice_president' => $club_data['vice_president'] ?? null,
+        ':meeting_place' => $club_data['meeting_place'] ?? null,
+        ':meeting_time' => $club_data['meeting_time'] ?? null,
+        ':founded_date' => $club_data['founded_date'] ?? null
     ];
 
     if ($is_update || (isset($club_data['id']) && !empty($club_data['id']))) {
