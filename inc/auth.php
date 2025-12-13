@@ -18,10 +18,14 @@ function login($username, $password)
 {
     debug_log("Login attempt for user: '$username'");
 
-    // 1. Check Super Admin
-    if ($username === SUPER_ADMIN_USER) {
+    // 1. Check Super Admin (From Database Settings)
+    $settings = get_settings();
+    $admin_user = $settings['admin_user'] ?? (defined('SUPER_ADMIN_USER') ? SUPER_ADMIN_USER : 'admin');
+    $admin_hash = $settings['admin_pass_hash'] ?? (defined('SUPER_ADMIN_PASS_HASH') ? SUPER_ADMIN_PASS_HASH : '');
+
+    if ($username === $admin_user) {
         debug_log("User matches Super Admin. Verifying hash...");
-        if (password_verify($password, SUPER_ADMIN_PASS_HASH)) {
+        if (password_verify($password, $admin_hash)) {
             debug_log("Super Admin login successful.");
             $_SESSION['user_role'] = 'super_admin';
             $_SESSION['user_id'] = 0;

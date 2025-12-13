@@ -3,41 +3,42 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-echo "<h1>Auto-Fix Login</h1>";
+echo "<h1>Auto-Fix Login (Database Mode)</h1>";
 
-$config_file = __DIR__ . '/inc/config.php';
-$config_content = file_get_contents($config_file);
+require_once 'inc/config.php';
+require_once 'inc/db.php';
 
-// 1. Fix Super Admin Password in Config
+// 1. Fix Super Admin Password in Database (Settings)
 echo "<h2>1. Super Admin Password</h2>";
+
+$admin_user = 'admin';
 $admin_pass = 'admin';
 $admin_hash = password_hash($admin_pass, PASSWORD_DEFAULT);
 
-// Regex to find the define line
-$pattern = "/define\('SUPER_ADMIN_PASS_HASH',\s*'[^']+'\);/";
-$replacement = "define('SUPER_ADMIN_PASS_HASH', '$admin_hash');";
+try {
+    $pdo = get_db();
 
-if (preg_match($pattern, $config_content)) {
-    $new_content = preg_replace($pattern, $replacement, $config_content);
-    if (file_put_contents($config_file, $new_content)) {
-        echo "<p style='color:green'>[SUCCESS] Updated inc/config.php with new hash for password: <strong>'$admin_pass'</strong></p>";
-    } else {
-        echo "<p style='color:red'>[ERROR] Could not write to inc/config.php. Check permissions.</p>";
-    }
-} else {
-    echo "<p style='color:orange'>[WARN] Could not find SUPER_ADMIN_PASS_HASH definition in config.php. Please update manually.</p>";
-    echo "Hash for 'admin': <br><code>$admin_hash</code>";
+    // Admin User
+    $stmt = $pdo->prepare("REPLACE INTO settings (`key`, value) VALUES ('admin_user', ?)");
+    $stmt->execute([$admin_user]);
+
+    // Admin Hash
+    $stmt = $pdo->prepare("REPLACE INTO settings (`key`, value) VALUES ('admin_pass_hash', ?)");
+    $stmt->execute([$admin_hash]);
+
+    echo "<p style='color:green'>[SUCCESS] Saved admin credentials to Database.</p>";
+    echo "User: <strong>$admin_user</strong><br>";
+    echo "Pass: <strong>$admin_pass</strong>";
+
+} catch (Exception $e) {
+    echo "<p style='color:red'>[ERROR] Database error (Admin): " . $e->getMessage() . "</p>";
 }
 
 // 2. Fix Public Access in Database
 echo "<h2>2. Settings (Public Access)</h2>";
 
-require_once 'inc/config.php'; // Load constants (might be old hash if cached, but we need DB consts)
-require_once 'inc/db.php';
-
 try {
-    $pdo = get_db();
-
+    // Public Hash
     $public_pass = 'moto';
     $public_hash = password_hash($public_pass, PASSWORD_DEFAULT);
 
@@ -48,11 +49,11 @@ try {
     echo "<p style='color:green'>[SUCCESS] Set public access password to: <strong>'$public_pass'</strong></p>";
 
 } catch (Exception $e) {
-    echo "<p style='color:red'>[ERROR] Database error: " . $e->getMessage() . "</p>";
+    echo "<p style='color:red'>[ERROR] Database error (Public): " . $e->getMessage() . "</p>";
 }
 
 echo "<hr>";
-echo "<p>Try to login now:</p>";
+echo "<p>Next Step: <strong>Login</strong> will now check these values.</p>";
 echo "<ul>";
 echo "<li><a href='login.php'>Login Page</a></li>";
 echo "<li>Admin User: <strong>admin</strong> / Password: <strong>admin</strong></li>";
