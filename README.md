@@ -22,4 +22,4 @@ Eine PHP-Webanwendung zur Verwaltung und Darstellung von Motorrad-Club Terminen 
 4. `update_schema.php` und `update_schema_admins.php` ausführen, um die Datenbank auf den neuesten Stand zu bringen.
 
 ---
-*Version 1.2.1*
+*Version 1.2.2*

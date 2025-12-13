@@ -22,6 +22,18 @@ $is_super_admin = is_super_admin();
             <h1 class="text-uppercase fw-bold mb-4">Release Notes</h1>
 
             <div class="mb-5">
+                <h3 class="text-info border-bottom border-info pb-2 mb-3">v1.2.2 - System Logging</h3>
+                <ul class="list-unstyled text-light fw-light">
+                    <li class="mb-2">📜 <strong>System-Logs:</strong> Detaillierte Protokollierung aller kritischen
+                        Aktionen (Login, Termine, Clubs, Admins).</li>
+                    <li class="mb-2">🕵️ <strong>Admin-Ansicht:</strong> Neue Oberfläche für Super-Admins zur Einsicht
+                        der Logs inkl. Filterung.</li>
+                    <li class="mb-2">🧹 <strong>Auto-Cleanup:</strong> Automatische Löschung von Logs, die älter als 30
+                        Tage sind (Datensparsamkeit).</li>
+                </ul>
+            </div>
+
+            <div class="mb-5">
                 <h3 class="text-danger border-bottom border-danger pb-2 mb-3">v1.2.1 - Security Hardening</h3>
                 <ul class="list-unstyled text-light fw-light">
                     <li class="mb-2">🛡️ <strong>CSRF-Schutz:</strong> Alle Formulare sind nun gegen

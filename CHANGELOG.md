@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.2.2 - System Logging (2025-12-13)
+- **Logging-System**: Vollständige Erfassung von Logins und CRUD-Operationen (Erstellen, Bearbeiten, Löschen).
+- **Admin-Interface**: Neue Seite `admin_logs.php` für Super-Admins.
+- **Accountability**: Erfassung von Benutzer, Rolle, IP-Adresse und Zeitstempel.
+- **Datenschutz**: Automatische Löschung von Einträgen nach 30 Tagen.
+
 ## v1.2.1 - Security Hardening (2025-12-13)
 - **CSRF-Schutz**: Implementierung von Anti-CSRF-Tokens in allen Formularen.
 - **Brute-Force-Schutz**: Login-Sperre nach 5 Fehlversuchen (erfordert Datenbank-Update).
