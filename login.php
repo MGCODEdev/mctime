@@ -6,6 +6,7 @@ $success = '';
 
 // Handle Public Login
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['public_login'])) {
+    Security::verifyCsrfToken();
     $pass = $_POST['public_password'] ?? '';
     if (login_public($pass)) {
         header('Location: index.php');
@@ -17,16 +18,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['public_login'])) {
 
 // Handle Admin Login
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['admin_login'])) {
+    Security::verifyCsrfToken();
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
 
-    if (login($username, $password)) {
+    $login_result = login($username, $password);
+    if ($login_result === true) {
         if (is_super_admin()) {
             header('Location: admin_clubs.php');
         } else {
             header('Location: admin_events.php');
         }
         exit;
+    } elseif ($login_result === 'blocked') {
+        $error = 'Zu viele fehlgeschlagene Versuche. Bitte warten Sie 15 Minuten.';
     } else {
         $error = 'Ungültige Zugangsdaten (Admin).';
     }
@@ -62,6 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['admin_login'])) {
             <div class="card-header-custom">Öffentlicher Zugang</div>
             <div class="card-body-custom">
                 <form method="post">
+                    <?php echo Security::csrfField(); ?>
                     <div class="mb-3">
                         <label for="public_password" class="form-label-custom">Passwort</label>
                         <input type="password" class="form-control form-control-custom" id="public_password"
@@ -76,6 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['admin_login'])) {
             <div class="card-header-custom">Club / Admin Login</div>
             <div class="card-body-custom">
                 <form method="post">
+                    <?php echo Security::csrfField(); ?>
                     <div class="mb-3">
                         <label for="username" class="form-label-custom">Benutzername</label>
                         <input type="text" class="form-control form-control-custom" id="username" name="username"

@@ -24,6 +24,7 @@ function can_edit_event($event)
 
 // Handle Actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    Security::verifyCsrfToken();
     if ($_POST['action'] === 'save_event') {
         $id = $_POST['id'] ?: uniqid();
 
@@ -218,6 +219,7 @@ foreach ($clubs as $c)
                                         <button class="btn btn-sm btn-secondary"
                                             onclick='editEvent(<?php echo json_encode($event); ?>)'>Bearbeiten</button>
                                         <form method="post" class="d-inline" onsubmit="return confirm('Wirklich löschen?');">
+                                            <?php echo Security::csrfField(); ?>
                                             <input type="hidden" name="action" value="delete_event">
                                             <input type="hidden" name="id" value="<?php echo $event['id']; ?>">
                                             <input type="hidden" name="date" value="<?php echo $event['date']; ?>">
@@ -245,6 +247,7 @@ foreach ($clubs as $c)
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
+                        <?php echo Security::csrfField(); ?>
                         <input type="hidden" name="action" value="save_event">
                         <input type="hidden" name="id" id="event_id">
 

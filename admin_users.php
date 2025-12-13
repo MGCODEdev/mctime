@@ -11,6 +11,7 @@ $success = '';
 
 // Handle Actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    Security::verifyCsrfToken();
     if (isset($_POST['action'])) {
         if ($_POST['action'] === 'save_admin') {
             $username = trim($_POST['username']);
@@ -97,7 +98,8 @@ $users = get_super_admins();
         <?php if ($success): ?>
             <div class="alert alert-success custom-alert"
                 style="color: #86efac; background: rgba(34, 197, 94, 0.1); border-color: rgba(34, 197, 94, 0.2);">
-                <?php echo htmlspecialchars($success); ?></div>
+                <?php echo htmlspecialchars($success); ?>
+            </div>
         <?php endif; ?>
 
         <div class="glass-card">
@@ -123,6 +125,7 @@ $users = get_super_admins();
                                     <?php if ($u['id'] != $_SESSION['user_id']): ?>
                                         <form method="post" class="d-inline"
                                             onsubmit="return confirm('Benutzer wirklich löschen?');">
+                                            <?php echo Security::csrfField(); ?>
                                             <input type="hidden" name="action" value="delete_admin">
                                             <input type="hidden" name="id" value="<?php echo $u['id']; ?>">
                                             <button type="submit" class="btn btn-sm btn-danger">Löschen</button>
@@ -147,6 +150,7 @@ $users = get_super_admins();
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
+                        <?php echo Security::csrfField(); ?>
                         <input type="hidden" name="action" value="save_admin">
                         <input type="hidden" name="id" id="user_id">
 

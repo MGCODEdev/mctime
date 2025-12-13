@@ -1,10 +1,11 @@
 <?php
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/data.php';
+require_once __DIR__ . '/security.php';
 
-if (session_status() == PHP_SESSION_NONE) {
-    session_start();
-}
+// Initialize Secure Session
+Security::initSession();
+Security::setHeaders();
 
 function debug_log($message)
 {
@@ -14,8 +15,37 @@ function debug_log($message)
     file_put_contents($log_file, $entry, FILE_APPEND);
 }
 
+function check_brute_force($username)
+{
+    $pdo = get_db();
+    $ip = $_SERVER['REMOTE_ADDR'];
+
+    // Count failed attempts in last 15 minutes
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM login_attempts WHERE ip_address = :ip AND attempt_time > (NOW() - INTERVAL 15 MINUTE)");
+    $stmt->execute([':ip' => $ip]);
+    $count = $stmt->fetchColumn();
+
+    if ($count >= 5) {
+        debug_log("Brute force blocked for IP: $ip");
+        return true; // Blocked
+    }
+    return false;
+}
+
+function record_failed_login($username)
+{
+    $pdo = get_db();
+    $ip = $_SERVER['REMOTE_ADDR'];
+    $stmt = $pdo->prepare("INSERT INTO login_attempts (ip_address, username) VALUES (:ip, :u)");
+    $stmt->execute([':ip' => $ip, ':u' => $username]);
+}
+
 function login($username, $password)
 {
+    if (check_brute_force($username)) {
+        return 'blocked';
+    }
+
     debug_log("Login attempt for user: '$username'");
 
     // 1. Check Super Admin (Database Table)
@@ -58,6 +88,7 @@ function login($username, $password)
     }
 
     debug_log("Login failed for user: '$username'");
+    record_failed_login($username);
     return false;
 }
 

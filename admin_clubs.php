@@ -11,6 +11,7 @@ $success = '';
 
 // Handle Create/Update Club
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    Security::verifyCsrfToken();
     if ($_POST['action'] === 'save_club') {
         $id = $_POST['id'] ?: uniqid();
         $name = trim($_POST['name']);
@@ -62,7 +63,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $decoded = base64_decode($logo_data);
 
                 if ($decoded) {
-                    $filename = 'logo_' . $id . '.png';
+                    // FIX: Path Traversal
+                    // Sanitize ID to ensure it's safe for filename
+                    $safe_id = Security::sanitizeFilename($id);
+                    $filename = 'logo_' . $safe_id . '.png';
                     $upload_dir = __DIR__ . '/uploads/logos/';
 
                     if (!is_dir($upload_dir)) {
@@ -222,6 +226,7 @@ $clubs = get_clubs();
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
+                        <?php echo Security::csrfField(); ?>
                         <input type="hidden" name="action" value="save_club">
                         <input type="hidden" name="id" id="club_id">
                         <input type="hidden" name="logo_data" id="logo_data">
