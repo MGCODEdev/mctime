@@ -139,11 +139,12 @@ function save_event($event_data)
                 time_from = :time_from, 
                 time_to = :time_to, 
                 location = :location, 
-                description = :description 
+                description = :description,
+                visibility = :visibility
                 WHERE id = :id";
     } else {
-        $sql = "INSERT INTO events (id, club_id, title, date, time_from, time_to, location, description) 
-                VALUES (:id, :club_id, :title, :date, :time_from, :time_to, :location, :description)";
+        $sql = "INSERT INTO events (id, club_id, title, date, time_from, time_to, location, description, visibility) 
+                VALUES (:id, :club_id, :title, :date, :time_from, :time_to, :location, :description, :visibility)";
     }
 
     $stmt = $pdo->prepare($sql);
@@ -155,7 +156,8 @@ function save_event($event_data)
         ':time_from' => $event_data['time_from'] ?? '',
         ':time_to' => $event_data['time_to'] ?? '',
         ':location' => $event_data['location'] ?? '',
-        ':description' => $event_data['description'] ?? ''
+        ':description' => $event_data['description'] ?? '',
+        ':visibility' => $event_data['visibility'] ?? 'public'
     ]);
 }
 

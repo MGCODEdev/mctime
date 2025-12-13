@@ -17,7 +17,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $time_from = $_POST['time_from'];
         $time_to = $_POST['time_to'];
         $location = trim($_POST['location']);
+
         $description = trim($_POST['description']);
+        $visibility = $_POST['visibility'] ?? 'public';
 
         // Club ID: if super admin, get from POST; if club admin, use session
         $club_id = null;
@@ -36,7 +38,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 'time_from' => $time_from,
                 'time_to' => $time_to,
                 'location' => $location,
-                'description' => $description
+                'description' => $description,
+                'visibility' => $visibility
             ];
 
             if (save_event($event_data)) {
@@ -219,6 +222,13 @@ if (is_club_admin()) {
                             <label class="form-label">Titel</label>
                             <input type="text" class="form-control" name="title" id="event_title" required>
                         </div>
+                        <div class="mb-3">
+                            <label class="form-label">Sichtbarkeit</label>
+                            <select class="form-select" name="visibility" id="event_visibility">
+                                <option value="public">Öffentlich (Open Road)</option>
+                                <option value="internal">Intern (Iron Circle)</option>
+                            </select>
+                        </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Datum</label>
@@ -263,7 +273,9 @@ if (is_club_admin()) {
             document.getElementById('event_time_from').value = '';
             document.getElementById('event_time_to').value = '';
             document.getElementById('event_location').value = '';
+            document.getElementById('event_location').value = '';
             document.getElementById('event_description').value = '';
+            document.getElementById('event_visibility').value = 'public';
             <?php if (is_super_admin()): ?>
                 document.getElementById('event_club_id').value = '<?php echo $clubs[0]['id'] ?? ''; ?>';
             <?php endif; ?>
@@ -277,7 +289,9 @@ if (is_club_admin()) {
             document.getElementById('event_time_from').value = event.time_from;
             document.getElementById('event_time_to').value = event.time_to;
             document.getElementById('event_location').value = event.location;
+            document.getElementById('event_location').value = event.location;
             document.getElementById('event_description').value = event.description;
+            document.getElementById('event_visibility').value = event.visibility || 'public';
             <?php if (is_super_admin()): ?>
                 document.getElementById('event_club_id').value = event.club_id;
             <?php endif; ?>

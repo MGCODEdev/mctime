@@ -63,9 +63,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
                 if ($decoded) {
                     $filename = 'logo_' . $id . '.png';
-                    $filepath = __DIR__ . '/uploads/logos/' . $filename;
-                    if (file_put_contents($filepath, $decoded)) {
+                    $upload_dir = __DIR__ . '/uploads/logos/';
+
+                    if (!is_dir($upload_dir)) {
+                        mkdir($upload_dir, 0777, true);
+                    }
+
+                    $filepath = $upload_dir . $filename;
+                    if (@file_put_contents($filepath, $decoded)) {
                         $club_data['logo'] = $filename;
+                    } else {
+                        $error = "Fehler beim Speichern des Logos (Rechteproblem?).";
                     }
                 }
             } else {
@@ -464,7 +472,7 @@ $clubs = get_clubs();
             const firstTabEl = document.querySelector('#clubTabs button[data-bs-target="#general"]');
             const tab = new bootstrap.Tab(firstTabEl);
             tab.show();
-        }
+    }
     </script>
 </body>
 

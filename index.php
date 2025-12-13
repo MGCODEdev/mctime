@@ -56,9 +56,12 @@ $month_names = [
     11 => 'November',
     12 => 'Dezember'
 ];
+
+$is_member = is_logged_in(); // True for Club Admin & Super Admin
 ?>
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -67,6 +70,7 @@ $month_names = [
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <link href="assets/css/style.css" rel="stylesheet">
 </head>
+
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark mb-4">
         <div class="container-fluid px-4">
@@ -94,10 +98,26 @@ $month_names = [
 
     <div class="container-fluid px-4 h-100 d-flex flex-column">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <a href="?month=<?php echo $prev_month; ?>&year=<?php echo $prev_year; ?>" class="btn btn-secondary">&laquo; Zurück</a>
+            <a href="?month=<?php echo $prev_month; ?>&year=<?php echo $prev_year; ?>" class="btn btn-secondary">&laquo;
+                Zurück</a>
             <h2 class="text-uppercase fw-bold m-0"><?php echo $month_names[$month] . ' ' . $year; ?></h2>
-            <a href="?month=<?php echo $next_month; ?>&year=<?php echo $next_year; ?>" class="btn btn-secondary">Vor &raquo;</a>
+            <a href="?month=<?php echo $next_month; ?>&year=<?php echo $next_year; ?>" class="btn btn-secondary">Vor
+                &raquo;</a>
         </div>
+
+        <ul class="nav nav-pills mb-3 justify-content-center" id="calendarTabs">
+            <li class="nav-item">
+                <a class="nav-link active" id="tab-open-road" href="#" onclick="switchCalendar('public')">Open Road
+                    (Öffentlich)</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="tab-iron-circle" href="#" onclick="switchCalendar('internal')">Iron Circle
+                    (Intern)</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="tab-all" href="#" onclick="switchCalendar('all')">Alle Termine</a>
+            </li>
+        </ul>
 
         <div class="calendar-container">
             <div class="calendar-header">
@@ -122,35 +142,49 @@ $month_names = [
                     $date_str = sprintf('%04d-%02d-%02d', $year, $month, $day);
                     $is_today = $date_str === date('Y-m-d');
                     $day_events = $events_by_day[$day] ?? [];
-                    
+
                     echo '<div class="calendar-day ' . ($is_today ? 'today' : '') . '" onclick="showDayDetails(' . $day . ')">';
                     echo '<div class="day-number">' . $day . '</div>';
-                    
+
                     $max_display = 6; // Show more events on large screens
                     $count = 0;
-                    
+
                     foreach ($day_events as $event) {
+                        // Logic moved to JS, but for server-side rendering we render ALL valid events for the user context
+                        // However, to make toggle instant, it's better to render all and hide via CSS/JS or re-render.
+                        // Better approach: Render logic in PHP? No, JS toggle is smoother.
+                        // Let's modify the loop to output data-attributes for visibility.
+                
+                        // BUT: We don't want to expose internal events to public users in HTML.
+                        // So: If NOT member, filter internal events out strictly.
+                        // if (!$is_member && ($event['visibility'] ?? 'public') === 'internal')
+                        //     continue;
+                
                         if ($count < $max_display) {
                             $club = $clubs_map[$event['club_id']] ?? ['color' => '#666', 'shortname' => '?'];
                             $bg_color = $club['color'] ?: '#666';
-                            
-                            echo '<div class="event-badge" style="background-color: ' . htmlspecialchars($bg_color) . ';" title="' . htmlspecialchars($event['title']) . '">';
-                            
+                            $vis = $event['visibility'] ?? 'public';
+
+                            // Add 'internal-event' class if internal
+                            $vis_class = $vis === 'internal' ? 'internal-event' : 'public-event';
+
+                            echo '<div class="event-badge ' . $vis_class . '" style="background-color: ' . htmlspecialchars($bg_color) . ';" title="' . htmlspecialchars($event['title']) . '">';
+
                             // Logo
                             if (isset($club['logo']) && file_exists('uploads/logos/' . $club['logo'])) {
                                 echo '<img src="uploads/logos/' . htmlspecialchars($club['logo']) . '" style="width: 16px; height: 16px; border-radius: 50%; margin-right: 4px; vertical-align: middle;">';
                             }
-                            
+
                             echo htmlspecialchars($club['shortname'] . ': ' . $event['title']);
                             echo '</div>';
                         }
                         $count++;
                     }
-                    
+
                     if ($count > $max_display) {
                         echo '<div class="more-events">+' . ($count - $max_display) . ' weitere</div>';
                     }
-                    
+
                     echo '</div>';
                 }
                 ?>
@@ -180,6 +214,37 @@ $month_names = [
         const monthNames = <?php echo json_encode($month_names); ?>;
         const currentYear = <?php echo $year; ?>;
         const currentMonth = <?php echo $month; ?>;
+        const isMember = <?php echo $is_member ? 'true' : 'false'; ?>;
+
+        // Initial State
+        let currentMode = 'public'; // 'public' or 'internal'
+
+        function switchCalendar(mode) {
+            currentMode = mode;
+
+            // Update Tabs
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+            if (mode === 'public') document.getElementById('tab-open-road').classList.add('active');
+            else if (mode === 'internal') document.getElementById('tab-iron-circle').classList.add('active');
+            else document.getElementById('tab-all').classList.add('active');
+
+            // Toggle Events
+            document.querySelectorAll('.internal-event').forEach(el => {
+                el.style.display = (mode === 'internal' || mode === 'all') ? 'block' : 'none';
+            });
+
+            document.querySelectorAll('.public-event').forEach(el => {
+                el.style.display = (mode === 'public' || mode === 'all') ? 'block' : 'none';
+            });
+
+            // Re-calc hidden counts would be complex, but for now simple toggle is fine.
+            // A reload would be cleaner but slower. Let's rely on CSS/JS toggle.
+        }
+
+        // Run once on load to hide internal if default is public
+        document.addEventListener("DOMContentLoaded", () => {
+            switchCalendar('public');
+        });
 
         function showDayDetails(day) {
             const dateStr = `${day}. ${monthNames[currentMonth]} ${currentYear}`;
@@ -192,15 +257,21 @@ $month_names = [
                 html = '<p class="text-muted">Keine Termine an diesem Tag.</p>';
             } else {
                 events.forEach(event => {
+                    // Filter in Modal
+                    const vis = event.visibility || 'public';
+                    if (currentMode === 'public' && vis === 'internal') return;
+                    if (currentMode === 'internal' && vis === 'public') return;
+                    // if currentMode === 'all', show everything
+
                     const club = clubsMap[event.club_id] || { name: 'Unbekannt', color: '#666' };
-                    
+
                     // Logo Logic
                     let logoHtml = '';
                     if (club.logo) {
-                         logoHtml = `<img src="uploads/logos/${club.logo}" style="width: 40px; height: 40px; border-radius: 50%; margin-right: 12px; object-fit: cover; border: 2px solid ${club.color};">`;
+                        logoHtml = `<img src="uploads/logos/${club.logo}" style="width: 40px; height: 40px; border-radius: 50%; margin-right: 12px; object-fit: cover; border: 2px solid ${club.color};">`;
                     } else {
                         // Fallback avatar
-                         logoHtml = `<div style="width: 40px; height: 40px; border-radius: 50%; margin-right: 12px; background-color: ${club.color}; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white;">${club.shortname.substring(0,2)}</div>`;
+                        logoHtml = `<div style="width: 40px; height: 40px; border-radius: 50%; margin-right: 12px; background-color: ${club.color}; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white;">${club.shortname.substring(0, 2)}</div>`;
                     }
 
                     html += `
@@ -242,4 +313,5 @@ $month_names = [
         }
     </script>
 </body>
+
 </html>

@@ -61,6 +61,7 @@ function init_db($pdo)
         time_to VARCHAR(10),
         location VARCHAR(255),
         description TEXT,
+        visibility ENUM('public', 'internal') DEFAULT 'public',
         FOREIGN KEY (club_id) REFERENCES clubs(id) ON DELETE CASCADE
     ) ENGINE=InnoDB");
 
