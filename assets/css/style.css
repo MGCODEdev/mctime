@@ -55,10 +55,11 @@ h6 {
 
 .nav-link:hover,
 .nav-link.active {
-    color: var(--text-color) !important;
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-    background: rgba(255, 255, 255, 0.05);
+    color: #ffffff !important;
+    background: rgba(100, 116, 139, 0.6);
+    /* Slate Gray */
     border-radius: 6px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
 }
 
 /* Glass Cards */
@@ -86,9 +87,7 @@ h6 {
     color: var(--text-muted);
 }
 
-border-color: var(--primary-color) !important;
-box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.25) !important;
-}
+/* Removed orphaned properties here */
 
 .form-label,
 .form-label-custom {
@@ -266,6 +265,7 @@ box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.25) !important;
     font-size: 3rem;
     background: linear-gradient(to right, var(--primary-color), #f59e0b);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
     margin-bottom: 0.5rem;
     text-align: center;

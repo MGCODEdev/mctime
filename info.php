@@ -11,7 +11,7 @@ $is_super_admin = is_super_admin();
     <title>MotoCalendar - Release Notes</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
-    <link href="assets/css/style.css?v=2" rel="stylesheet">
+    <link href="assets/css/style.css?v=3" rel="stylesheet">
 </head>
 
 <body>
