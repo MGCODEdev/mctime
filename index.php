@@ -87,8 +87,10 @@ $is_member = is_logged_in(); // True for Club Admin & Super Admin
                         <?php else: ?>
                             <a class="nav-link" href="admin_events.php">Verwaltung</a>
                         <?php endif; ?>
+                        <a class="nav-link" href="info.php">Info</a>
                         <a class="nav-link" href="logout.php">Logout</a>
                     <?php else: ?>
+                        <a class="nav-link" href="info.php">Info</a>
                         <a class="nav-link" href="login.php">Login</a>
                     <?php endif; ?>
                 </div>

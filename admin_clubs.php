@@ -156,6 +156,7 @@ $clubs = get_clubs();
                     <a class="nav-link active" href="admin_clubs.php">Clubs</a>
                     <a class="nav-link" href="admin_events.php">Termine</a>
                     <a class="nav-link" href="admin_backup.php">Backup</a>
+                    <a class="nav-link" href="info.php">Info</a>
                     <a class="nav-link" href="logout.php">Logout</a>
                 </div>
             </div>
@@ -472,7 +473,7 @@ $clubs = get_clubs();
             const firstTabEl = document.querySelector('#clubTabs button[data-bs-target="#general"]');
             const tab = new bootstrap.Tab(firstTabEl);
             tab.show();
-    }
+        }
     </script>
 </body>
 

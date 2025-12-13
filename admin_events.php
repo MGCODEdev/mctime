@@ -117,6 +117,7 @@ if (is_club_admin()) {
                     <?php if (is_super_admin()): ?>
                         <a class="nav-link" href="admin_backup.php">Backup</a>
                     <?php endif; ?>
+                    <a class="nav-link" href="info.php">Info</a>
                     <a class="nav-link" href="logout.php">Logout</a>
                 </div>
             </div>
@@ -156,6 +157,7 @@ if (is_club_admin()) {
                         <tr>
                             <th>Datum</th>
                             <th>Zeit</th>
+                            <th>Kalender</th>
                             <th>Titel</th>
                             <?php if (is_super_admin()): ?>
                                 <th>Club</th><?php endif; ?>
@@ -168,6 +170,14 @@ if (is_club_admin()) {
                             <tr>
                                 <td><?php echo htmlspecialchars($event['date']); ?></td>
                                 <td><?php echo htmlspecialchars($event['time_from'] . ' - ' . $event['time_to']); ?></td>
+                                <td>
+                                    <?php
+                                    $vis = $event['visibility'] ?? 'public';
+                                    $badgeClass = $vis === 'internal' ? 'bg-warning text-dark' : 'bg-info text-dark';
+                                    $visLabel = $vis === 'internal' ? 'Iron Circle' : 'Open Road';
+                                    ?>
+                                    <span class="badge <?php echo $badgeClass; ?>"><?php echo $visLabel; ?></span>
+                                </td>
                                 <td><?php echo htmlspecialchars($event['title']); ?></td>
                                 <?php if (is_super_admin()): ?>
                                     <td>
