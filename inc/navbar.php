@@ -16,6 +16,7 @@ $is_super_admin = is_super_admin();
                     href="index.php">Kalender</a>
 
                 <?php if ($is_logged_in): ?>
+                    <?php if ($is_super_admin): ?>
                         <a class="nav-link <?php echo $current_page == 'admin_clubs.php' ? 'active' : ''; ?>"
                             href="admin_clubs.php">Clubs</a>
                         <a class="nav-link <?php echo $current_page == 'admin_users.php' ? 'active' : ''; ?>"
@@ -27,8 +28,9 @@ $is_super_admin = is_super_admin();
                         <a class="nav-link <?php echo $current_page == 'admin_backup.php' ? 'active' : ''; ?>"
                             href="admin_backup.php">Backup</a>
                     <?php else: ?>
+                        <!-- Club Admin Links -->
                         <a class="nav-link <?php echo $current_page == 'admin_events.php' ? 'active' : ''; ?>"
-                            href="admin_events.php">Verwaltung</a>
+                            href="admin_events.php">Termine</a>
                     <?php endif; ?>
                 <?php endif; ?>
 
