@@ -22,6 +22,21 @@ $is_super_admin = is_super_admin();
             <h1 class="text-uppercase fw-bold mb-4">Release Notes</h1>
 
             <div class="mb-5">
+                <h3 class="text-success border-bottom border-success pb-2 mb-3">v1.2.0 - Permissions & Styling Update
+                </h3>
+                <ul class="list-unstyled text-light fw-light">
+                    <li class="mb-2">👮 <strong>Erweitertes Admin-System:</strong> Unterstützung für mehrere
+                        Super-Admins mit eigener Verwaltungsoberfläche.</li>
+                    <li class="mb-2">🔑 <strong>Berechtigungs-Konzept:</strong> Clubs sehen jetzt ALLE Termine, können
+                        aber nur ihre EIGENEN bearbeiten ("Read-All, Edit-Own").</li>
+                    <li class="mb-2">🎨 <strong>Design-Optimierungen:</strong> Verbesserte Lesbarkeit in Tabellen (Dark
+                        Mode Hover Fix) und deutlichere Wochenend-Markierung.</li>
+                    <li class="mb-2">🧭 <strong>Navigation:</strong> Einheitliche Menüleiste auf allen Seiten mit
+                        Hover-Effekten.</li>
+                </ul>
+            </div>
+
+            <div class="mb-5">
                 <h3 class="text-primary border-bottom border-secondary pb-2 mb-3">v1.1.0 - Multi-Calendar Update</h3>
                 <ul class="list-unstyled text-light fw-light">
                     <li class="mb-2">✨ <strong>Zwei Kalender-System:</strong> Trennung in "Open Road" (Öffentlich) und
