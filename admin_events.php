@@ -12,10 +12,48 @@ $success = '';
 $current_year = date('Y');
 $selected_year = $_GET['year'] ?? $current_year;
 
+// Permission Check Helper
+function can_edit_event($event)
+{
+    if (is_super_admin())
+        return true;
+    if (is_club_admin() && $event['club_id'] == get_current_club_id())
+        return true;
+    return false;
+}
+
 // Handle Actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     if ($_POST['action'] === 'save_event') {
         $id = $_POST['id'] ?: uniqid();
+
+        // Security Check for Editing
+        if (!empty($_POST['id'])) {
+            // Check if event exists and belongs to club
+            // optimization: we could fetch it, but save_event handles logic.
+            // Better to verify here strictly.
+            // We can't easily fetch just one without db helper, but we have get_events list... 
+            // actually we don't have the list yet (it loads below).
+            // Let's rely on club_id enforcement or specific check.
+
+            // To be safe: Load event to check ownership if not super admin
+            if (!is_super_admin()) {
+                // We need a way to check ownership. 
+                // Since we don't want to load all events yet, let's trust the logic below IF we handle it right.
+                // Issue: save_event overwrites ownership if we just set club_id.
+                // FIX: Verify ownership before saving.
+                // We need to fetch the event.
+                $pdo = get_db();
+                $stmt = $pdo->prepare("SELECT club_id FROM events WHERE id = :id");
+                $stmt->execute([':id' => $id]);
+                $existing = $stmt->fetch();
+
+                if ($existing && $existing['club_id'] != get_current_club_id()) {
+                    die("Zugriff verweigert: Sie dürfen diesen Termin nicht bearbeiten.");
+                }
+            }
+        }
+
         $title = trim($_POST['title']);
         $date = $_POST['date'];
         $time_from = $_POST['time_from'];
@@ -30,6 +68,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         if (is_super_admin()) {
             $club_id = $_POST['club_id'];
         } else {
+            // If editing, keep original club_id? Or enforce current?
+            // If checking above passed, then current == original.
             $club_id = get_current_club_id();
         }
 
@@ -61,6 +101,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $event_id = $_POST['id'];
         $event_year = substr($_POST['date'], 0, 4);
 
+        // Permission Check
+        if (!is_super_admin()) {
+            $pdo = get_db();
+            $stmt = $pdo->prepare("SELECT club_id FROM events WHERE id = :id");
+            $stmt->execute([':id' => $event_id]);
+            $existing = $stmt->fetch();
+
+            if ($existing && $existing['club_id'] != get_current_club_id()) {
+                die("Zugriff verweigert.");
+            }
+        }
+
         if (delete_event($event_id, $event_year)) {
             header("Location: admin_events.php?year=$event_year&success=deleted");
             exit;
@@ -81,13 +133,9 @@ $clubs_map = [];
 foreach ($clubs as $c)
     $clubs_map[$c['id']] = $c;
 
-// Filter events for Club Admin
-if (is_club_admin()) {
-    $my_club_id = get_current_club_id();
-    $events = array_filter($events, function ($e) use ($my_club_id) {
-        return $e['club_id'] == $my_club_id;
-    });
-}
+// REMOVED: Filtering for Club Admins. Now they see everything.
+// Events are NOT filtered here anymore.
+
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -139,8 +187,7 @@ if (is_club_admin()) {
                             <th>Zeit</th>
                             <th>Kalender</th>
                             <th>Titel</th>
-                            <?php if (is_super_admin()): ?>
-                                <th>Club</th><?php endif; ?>
+                            <th>Club</th>
                             <th>Ort</th>
                             <th>Aktionen</th>
                         </tr>
@@ -159,24 +206,26 @@ if (is_club_admin()) {
                                     <span class="badge <?php echo $badgeClass; ?>"><?php echo $visLabel; ?></span>
                                 </td>
                                 <td><?php echo htmlspecialchars($event['title']); ?></td>
-                                <?php if (is_super_admin()): ?>
-                                    <td>
-                                        <?php
-                                        $c = $clubs_map[$event['club_id']] ?? null;
-                                        echo $c ? htmlspecialchars($c['shortname']) : '?';
-                                        ?>
-                                    </td>
-                                <?php endif; ?>
+                                <td>
+                                    <?php
+                                    $c = $clubs_map[$event['club_id']] ?? null;
+                                    echo $c ? htmlspecialchars($c['shortname']) : '?';
+                                    ?>
+                                </td>
                                 <td><?php echo htmlspecialchars($event['location']); ?></td>
                                 <td>
-                                    <button class="btn btn-sm btn-secondary"
-                                        onclick='editEvent(<?php echo json_encode($event); ?>)'>Bearbeiten</button>
-                                    <form method="post" class="d-inline" onsubmit="return confirm('Wirklich löschen?');">
-                                        <input type="hidden" name="action" value="delete_event">
-                                        <input type="hidden" name="id" value="<?php echo $event['id']; ?>">
-                                        <input type="hidden" name="date" value="<?php echo $event['date']; ?>">
-                                        <button type="submit" class="btn btn-sm btn-danger">Löschen</button>
-                                    </form>
+                                    <?php if (can_edit_event($event)): ?>
+                                        <button class="btn btn-sm btn-secondary"
+                                            onclick='editEvent(<?php echo json_encode($event); ?>)'>Bearbeiten</button>
+                                        <form method="post" class="d-inline" onsubmit="return confirm('Wirklich löschen?');">
+                                            <input type="hidden" name="action" value="delete_event">
+                                            <input type="hidden" name="id" value="<?php echo $event['id']; ?>">
+                                            <input type="hidden" name="date" value="<?php echo $event['date']; ?>">
+                                            <button type="submit" class="btn btn-sm btn-danger">Löschen</button>
+                                        </form>
+                                    <?php else: ?>
+                                        <span class="text-muted small">Nur Lesen</span>
+                                    <?php endif; ?>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

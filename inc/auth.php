@@ -18,18 +18,19 @@ function login($username, $password)
 {
     debug_log("Login attempt for user: '$username'");
 
-    // 1. Check Super Admin (From Database Settings)
-    $settings = get_settings();
-    $admin_user = $settings['admin_user'] ?? (defined('SUPER_ADMIN_USER') ? SUPER_ADMIN_USER : 'admin');
-    $admin_hash = $settings['admin_pass_hash'] ?? (defined('SUPER_ADMIN_PASS_HASH') ? SUPER_ADMIN_PASS_HASH : '');
+    // 1. Check Super Admin (Database Table)
+    $pdo = get_db();
+    $stmt = $pdo->prepare("SELECT * FROM super_admins WHERE username = :u");
+    $stmt->execute([':u' => $username]);
+    $admin = $stmt->fetch();
 
-    if ($username === $admin_user) {
-        debug_log("User matches Super Admin. Verifying hash...");
-        if (password_verify($password, $admin_hash)) {
+    if ($admin) {
+        debug_log("User matches Super Admin (DB). Verifying hash...");
+        if (password_verify($password, $admin['password_hash'])) {
             debug_log("Super Admin login successful.");
             $_SESSION['user_role'] = 'super_admin';
-            $_SESSION['user_id'] = 0;
-            $_SESSION['user_name'] = 'Super Admin';
+            $_SESSION['user_id'] = $admin['id'];
+            $_SESSION['user_name'] = $admin['username'];
             session_regenerate_id(true);
             return true;
         } else {

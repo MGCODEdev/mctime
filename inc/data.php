@@ -194,3 +194,57 @@ function save_settings($settings)
         return false;
     }
 }
+
+// --- Super Admins ---
+
+function get_super_admins()
+{
+    $pdo = get_db();
+    $stmt = $pdo->query("SELECT * FROM super_admins ORDER BY username ASC");
+    return $stmt->fetchAll();
+}
+
+function get_super_admin($id)
+{
+    $pdo = get_db();
+    $stmt = $pdo->prepare("SELECT * FROM super_admins WHERE id = :id");
+    $stmt->execute([':id' => $id]);
+    return $stmt->fetch();
+}
+
+function save_super_admin($data)
+{
+    $pdo = get_db();
+
+    if (isset($data['password']) && !empty($data['password'])) {
+        $hash = password_hash($data['password'], PASSWORD_DEFAULT);
+    } else {
+        $hash = null;
+    }
+
+    if (isset($data['id']) && !empty($data['id'])) {
+        // Update
+        if ($hash) {
+            $stmt = $pdo->prepare("UPDATE super_admins SET username = :u, password_hash = :p WHERE id = :id");
+            return $stmt->execute([':u' => $data['username'], ':p' => $hash, ':id' => $data['id']]);
+        } else {
+            $stmt = $pdo->prepare("UPDATE super_admins SET username = :u WHERE id = :id");
+            return $stmt->execute([':u' => $data['username'], ':id' => $data['id']]);
+        }
+    } else {
+        // Insert
+        if (!$hash)
+            return false; // Password required for new
+        $stmt = $pdo->prepare("INSERT INTO super_admins (username, password_hash) VALUES (:u, :p)");
+        return $stmt->execute([':u' => $data['username'], ':p' => $hash]);
+    }
+}
+
+function delete_super_admin($id)
+{
+    // Prevent deleting the last admin? Not strictly required but good practice.
+    // For now, simple delete.
+    $pdo = get_db();
+    $stmt = $pdo->prepare("DELETE FROM super_admins WHERE id = :id");
+    return $stmt->execute([':id' => $id]);
+}
