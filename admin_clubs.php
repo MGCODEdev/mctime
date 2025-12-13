@@ -1,5 +1,5 @@
-<?php
 require_once 'inc/auth.php';
+require_once 'inc/logging.php';
 require_super_admin();
 
 ini_set('display_errors', 1);
@@ -11,111 +11,118 @@ $success = '';
 
 // Handle Create/Update Club
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
-    Security::verifyCsrfToken();
-    if ($_POST['action'] === 'save_club') {
-        $id = $_POST['id'] ?: uniqid();
-        $name = trim($_POST['name']);
-        $shortname = trim($_POST['shortname']);
-        $color = $_POST['color'];
-        $login_name = trim($_POST['login_name']);
-        $password = $_POST['password'];
-        $active = isset($_POST['active']);
-        $logo_data = $_POST['logo_data'] ?? ''; // Base64 encoded image
+Security::verifyCsrfToken();
+if ($_POST['action'] === 'save_club') {
+$id = $_POST['id'] ?: uniqid();
+$is_new = empty($_POST['id']);
+$name = trim($_POST['name']);
 
-        // New Fields
-        $contact_email = trim($_POST['contact_email'] ?? '');
-        $website = trim($_POST['website'] ?? '');
-        $president = trim($_POST['president'] ?? '');
-        $vice_president = trim($_POST['vice_president'] ?? '');
-        $meeting_place = trim($_POST['meeting_place'] ?? '');
-        $meeting_time = trim($_POST['meeting_time'] ?? '');
-        $founded_date = !empty($_POST['founded_date']) ? $_POST['founded_date'] : null;
+// ... params ...
+$shortname = trim($_POST['shortname']);
+$color = $_POST['color'];
+$login_name = trim($_POST['login_name']);
+$password = $_POST['password'];
+$active = isset($_POST['active']);
+$logo_data = $_POST['logo_data'] ?? ''; // Base64 encoded image
 
-        if ($name && $login_name) {
-            // Validation
-            if ($contact_email && !filter_var($contact_email, FILTER_VALIDATE_EMAIL)) {
-                $error = "Ungültige E-Mail-Adresse.";
-            }
-            if ($website && !filter_var($website, FILTER_VALIDATE_URL)) {
-                $error = "Ungültige Webseiten-URL.";
-            }
+// New Fields
+$contact_email = trim($_POST['contact_email'] ?? '');
+$website = trim($_POST['website'] ?? '');
+$president = trim($_POST['president'] ?? '');
+$vice_president = trim($_POST['vice_president'] ?? '');
+$meeting_place = trim($_POST['meeting_place'] ?? '');
+$meeting_time = trim($_POST['meeting_time'] ?? '');
+$founded_date = !empty($_POST['founded_date']) ? $_POST['founded_date'] : null;
 
-            $club_data = [
-                'id' => $id,
-                'name' => $name,
-                'shortname' => $shortname,
-                'color' => $color,
-                'login_name' => $login_name,
-                'active' => $active,
-                'contact_email' => $contact_email,
-                'website' => $website,
-                'president' => $president,
-                'vice_president' => $vice_president,
-                'meeting_place' => $meeting_place,
-                'meeting_time' => $meeting_time,
-                'founded_date' => $founded_date
-            ];
+if ($name && $login_name) {
+// Validation
+if ($contact_email && !filter_var($contact_email, FILTER_VALIDATE_EMAIL)) {
+$error = "Ungültige E-Mail-Adresse.";
+}
+if ($website && !filter_var($website, FILTER_VALIDATE_URL)) {
+$error = "Ungültige Webseiten-URL.";
+}
 
-            // Handle Logo Upload
-            if ($logo_data) {
-                // Remove data:image/png;base64, prefix
-                $logo_data = preg_replace('#^data:image/\w+;base64,#i', '', $logo_data);
-                $decoded = base64_decode($logo_data);
+$club_data = [
+'id' => $id,
+'name' => $name,
+'shortname' => $shortname,
+'color' => $color,
+'login_name' => $login_name,
+'active' => $active,
+'contact_email' => $contact_email,
+'website' => $website,
+'president' => $president,
+'vice_president' => $vice_president,
+'meeting_place' => $meeting_place,
+'meeting_time' => $meeting_time,
+'founded_date' => $founded_date
+];
 
-                if ($decoded) {
-                    // FIX: Path Traversal
-                    // Sanitize ID to ensure it's safe for filename
-                    $safe_id = Security::sanitizeFilename($id);
-                    $filename = 'logo_' . $safe_id . '.png';
-                    $upload_dir = __DIR__ . '/uploads/logos/';
+// Handle Logo Upload
+if ($logo_data) {
+// Remove data:image/png;base64, prefix
+$logo_data = preg_replace('#^data:image/\w+;base64,#i', '', $logo_data);
+$decoded = base64_decode($logo_data);
 
-                    if (!is_dir($upload_dir)) {
-                        mkdir($upload_dir, 0777, true);
-                    }
+if ($decoded) {
+// FIX: Path Traversal
+// Sanitize ID to ensure it's safe for filename
+$safe_id = Security::sanitizeFilename($id);
+$filename = 'logo_' . $safe_id . '.png';
+$upload_dir = __DIR__ . '/uploads/logos/';
 
-                    $filepath = $upload_dir . $filename;
-                    if (@file_put_contents($filepath, $decoded)) {
-                        $club_data['logo'] = $filename;
-                    } else {
-                        $error = "Fehler beim Speichern des Logos (Rechteproblem?).";
-                    }
-                }
-            } else {
-                // Keep existing logo
-                $existing = get_club($id);
-                if ($existing && isset($existing['logo'])) {
-                    $club_data['logo'] = $existing['logo'];
-                }
-            }
+if (!is_dir($upload_dir)) {
+mkdir($upload_dir, 0777, true);
+}
 
-            // Only update password if provided or if it's a new club
-            if ($password) {
-                $club_data['password_hash'] = password_hash($password, PASSWORD_DEFAULT);
-            } else {
-                // Keep existing password if editing
-                $existing = get_club($id);
-                if ($existing) {
-                    $club_data['password_hash'] = $existing['password_hash'];
-                } else {
-                    $error = "Passwort ist für neue Clubs erforderlich.";
-                }
-            }
+$filepath = $upload_dir . $filename;
+if (@file_put_contents($filepath, $decoded)) {
+$club_data['logo'] = $filename;
+} else {
+$error = "Fehler beim Speichern des Logos (Rechteproblem?).";
+}
+}
+} else {
+// Keep existing logo
+$existing = get_club($id);
+if ($existing && isset($existing['logo'])) {
+$club_data['logo'] = $existing['logo'];
+}
+}
 
-            if (!$error) {
-                if (save_club($club_data)) {
-                    $success = "Club gespeichert.";
-                } else {
-                    $error = "Fehler beim Speichern.";
-                }
-            }
-        } else {
-            $error = "Name und Login-Name sind Pflichtfelder.";
-        }
-    } elseif ($_POST['action'] === 'delete_club') {
-        if (delete_club($_POST['id'])) {
-            $success = "Club gelöscht.";
-        }
-    }
+// Only update password if provided or if it's a new club
+if ($password) {
+$club_data['password_hash'] = password_hash($password, PASSWORD_DEFAULT);
+} else {
+// Keep existing password if editing
+$existing = get_club($id);
+if ($existing) {
+$club_data['password_hash'] = $existing['password_hash'];
+} else {
+$error = "Passwort ist für neue Clubs erforderlich.";
+}
+}
+
+if (!$error) {
+if (save_club($club_data)) {
+$action_type = $is_new ? 'CLUB_CREATE' : 'CLUB_UPDATE';
+system_log($action_type, "Name: $name, Login: $login_name");
+$success = "Club gespeichert.";
+} else {
+$error = "Fehler beim Speichern.";
+}
+}
+} else {
+$error = "Name und Login-Name sind Pflichtfelder.";
+}
+} elseif ($_POST['action'] === 'delete_club') {
+$cancel_id = $_POST['id'];
+if (delete_club($cancel_id)) {
+system_log('CLUB_DELETE', "ID: $cancel_id");
+$success = "Club gelöscht.";
+}
+}
 }
 
 $clubs = get_clubs();

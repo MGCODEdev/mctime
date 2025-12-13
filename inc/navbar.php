@@ -16,11 +16,12 @@ $is_super_admin = is_super_admin();
                     href="index.php">Kalender</a>
 
                 <?php if ($is_logged_in): ?>
-                    <?php if ($is_super_admin): ?>
                         <a class="nav-link <?php echo $current_page == 'admin_clubs.php' ? 'active' : ''; ?>"
                             href="admin_clubs.php">Clubs</a>
                         <a class="nav-link <?php echo $current_page == 'admin_users.php' ? 'active' : ''; ?>"
                             href="admin_users.php">Admins</a>
+                        <a class="nav-link <?php echo $current_page == 'admin_logs.php' ? 'active' : ''; ?>"
+                            href="admin_logs.php">Logs</a>
                         <a class="nav-link <?php echo $current_page == 'admin_events.php' ? 'active' : ''; ?>"
                             href="admin_events.php">Termine</a>
                         <a class="nav-link <?php echo $current_page == 'admin_backup.php' ? 'active' : ''; ?>"
