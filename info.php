@@ -11,36 +11,11 @@ $is_super_admin = is_super_admin();
     <title>MotoCalendar - Release Notes</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
-    <link href="assets/css/style.css" rel="stylesheet">
+    <link href="assets/css/style.css?v=2" rel="stylesheet">
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark mb-4">
-        <div class="container-fluid px-4">
-            <a class="navbar-brand" href="index.php">MotoCalendar</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <div class="navbar-nav ms-auto">
-                    <a class="nav-link" href="index.php">Kalender</a>
-                    <?php if (is_logged_in()): ?>
-                        <?php if (is_super_admin()): ?>
-                            <a class="nav-link" href="admin_clubs.php">Admin</a>
-                        <?php else: ?>
-                            <a class="nav-link" href="admin_events.php">Verwaltung</a>
-                        <?php endif; ?>
-                    <?php endif; ?>
-                    <a class="nav-link active" href="info.php">Info</a>
-                    <?php if (is_logged_in()): ?>
-                        <a class="nav-link" href="logout.php">Logout</a>
-                    <?php else: ?>
-                        <a class="nav-link" href="login.php">Login</a>
-                    <?php endif; ?>
-                </div>
-            </div>
-        </div>
-    </nav>
+    <?php include 'inc/navbar.php'; ?>
 
     <div class="container">
         <div class="glass-card mb-4 p-4">

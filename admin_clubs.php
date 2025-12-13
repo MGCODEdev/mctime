@@ -126,7 +126,7 @@ $clubs = get_clubs();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
-    <link href="assets/css/style.css" rel="stylesheet">
+    <link href="assets/css/style.css?v=2" rel="stylesheet">
     <style>
         .img-container {
             max-width: 100%;
@@ -145,23 +145,7 @@ $clubs = get_clubs();
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark mb-4">
-        <div class="container">
-            <a class="navbar-brand" href="index.php">MotoCalendar</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <div class="navbar-nav ms-auto">
-                    <a class="nav-link active" href="admin_clubs.php">Clubs</a>
-                    <a class="nav-link" href="admin_events.php">Termine</a>
-                    <a class="nav-link" href="admin_backup.php">Backup</a>
-                    <a class="nav-link" href="info.php">Info</a>
-                    <a class="nav-link" href="logout.php">Logout</a>
-                </div>
-            </div>
-        </div>
-    </nav>
+    <?php include 'inc/navbar.php'; ?>
 
     <div class="container">
         <div class="d-flex justify-content-between align-items-center mb-4">

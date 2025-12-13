@@ -56,6 +56,9 @@ h6 {
 .nav-link:hover,
 .nav-link.active {
     color: var(--text-color) !important;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
 }
 
 /* Glass Cards */
