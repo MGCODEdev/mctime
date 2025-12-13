@@ -35,6 +35,8 @@ $is_super_admin = is_super_admin();
                 <?php endif; ?>
 
                 <a class="nav-link <?php echo $current_page == 'info.php' ? 'active' : ''; ?>" href="info.php">Info</a>
+                <a class="nav-link <?php echo $current_page == 'impressum.php' ? 'active' : ''; ?>"
+                    href="impressum.php">Impressum</a>
 
                 <?php if ($is_logged_in): ?>
                     <a class="nav-link" href="logout.php">Logout</a>
