@@ -22,6 +22,20 @@ $is_super_admin = is_super_admin();
             <h1 class="text-uppercase fw-bold mb-4">Release Notes</h1>
 
             <div class="mb-5">
+                <h3 class="text-danger border-bottom border-danger pb-2 mb-3">v1.2.1 - Security Hardening</h3>
+                <ul class="list-unstyled text-light fw-light">
+                    <li class="mb-2">🛡️ <strong>CSRF-Schutz:</strong> Alle Formulare sind nun gegen
+                        Cross-Site-Request-Forgery geschützt.</li>
+                    <li class="mb-2">🧱 <strong>Brute-Force-Schutz:</strong> Login wird nach 5 fehlgeschlagenen
+                        Versuchen für 15 Minuten gesperrt (IP-basiert).</li>
+                    <li class="mb-2">📁 <strong>Sicherer Upload:</strong> Behebung einer Path-Traversal-Schwachstelle
+                        beim Logo-Upload.</li>
+                    <li class="mb-2">🔒 <strong>Session-Sicherheit:</strong> Strengere Cookie-Richtlinien (HttpOnly,
+                        SameSite) und Sicherheits-Header.</li>
+                </ul>
+            </div>
+
+            <div class="mb-5">
                 <h3 class="text-success border-bottom border-success pb-2 mb-3">v1.2.0 - Permissions & Styling Update
                 </h3>
                 <ul class="list-unstyled text-light fw-light">
