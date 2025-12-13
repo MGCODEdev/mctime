@@ -304,3 +304,13 @@ box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.25) !important;
 .table td {
     vertical-align: middle;
 }
+
+/* Weekend Styling */
+.calendar-day.weekend {
+    background-color: rgba(51, 65, 85, 0.4);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.calendar-day.weekend .day-number {
+    color: #e2e8f0;
+}

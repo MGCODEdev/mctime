@@ -143,9 +143,11 @@ $is_member = is_logged_in(); // True for Club Admin & Super Admin
                 for ($day = 1; $day <= $days_in_month; $day++) {
                     $date_str = sprintf('%04d-%02d-%02d', $year, $month, $day);
                     $is_today = $date_str === date('Y-m-d');
+                    $day_num = date('N', strtotime($date_str));
+                    $is_weekend = ($day_num == 6 || $day_num == 7);
                     $day_events = $events_by_day[$day] ?? [];
 
-                    echo '<div class="calendar-day ' . ($is_today ? 'today' : '') . '" onclick="showDayDetails(' . $day . ')">';
+                    echo '<div class="calendar-day ' . ($is_today ? 'today' : '') . ($is_weekend ? ' weekend' : '') . '" onclick="showDayDetails(' . $day . ')">';
                     echo '<div class="day-number">' . $day . '</div>';
 
                     $max_display = 6; // Show more events on large screens
