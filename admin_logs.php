@@ -4,10 +4,20 @@ require_once 'inc/logging.php';
 require_super_admin();
 
 // Auto-cleanup old logs (30 days)
-cleanup_system_logs(30);
-
-$limit = $_GET['limit'] ?? 100;
-$logs = get_system_logs($limit);
+$error_msg = '';
+try {
+    cleanup_system_logs(30);
+    $limit = $_GET['limit'] ?? 100;
+    $logs = get_system_logs($limit);
+} catch (PDOException $e) {
+    // If table doesn't exist, we get '1146 Table ... doesn't exist'
+    if (strpos($e->getMessage(), 'doesn\'t exist') !== false) {
+        $error_msg = "<strong>Fehler:</strong> Die Tabelle <code>system_logs</code> existiert noch nicht.<br>Bitte führen Sie das Update-Skript aus: <a href='update_schema_logs.php' class='alert-link'>update_schema_logs.php</a>";
+    } else {
+        $error_msg = "Datenbank-Fehler: " . htmlspecialchars($e->getMessage());
+    }
+    $logs = [];
+}
 
 ?>
 <!DOCTYPE html>
@@ -33,6 +43,12 @@ $logs = get_system_logs($limit);
                     onclick="return confirm('Logs älter als 30 Tage werden beim Laden dieser Seite automatisch gelöscht.');">Aktualisieren</a>
             </div>
         </div>
+
+        <?php if (!empty($error_msg)): ?>
+            <div class="alert alert-danger custom-alert">
+                <?php echo $error_msg; ?>
+            </div>
+        <?php endif; ?>
 
         <div class="glass-card">
             <div class="table-responsive">
