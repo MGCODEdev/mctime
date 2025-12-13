@@ -41,8 +41,9 @@ try {
     $public_pass = 'moto';
     $public_hash = password_hash($public_pass, PASSWORD_DEFAULT);
 
-    $stmt = $pdo->prepare("INSERT INTO settings (`key`, value) VALUES ('public_pass_hash', :hash) ON DUPLICATE KEY UPDATE value = :hash");
-    $stmt->execute([':hash' => $public_hash]);
+    // Use REPLACE INTO to avoid parameter count confusion with ON DUPLICATE KEY UPDATE
+    $stmt = $pdo->prepare("REPLACE INTO settings (`key`, value) VALUES ('public_pass_hash', ?)");
+    $stmt->execute([$public_hash]);
 
     echo "<p style='color:green'>[SUCCESS] Set public access password to: <strong>'$public_pass'</strong></p>";
 
