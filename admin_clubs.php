@@ -2,6 +2,10 @@
 require_once 'inc/auth.php';
 require_super_admin();
 
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 $error = '';
 $success = '';
 
@@ -24,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $vice_president = trim($_POST['vice_president'] ?? '');
         $meeting_place = trim($_POST['meeting_place'] ?? '');
         $meeting_time = trim($_POST['meeting_time'] ?? '');
-        $founded_date = $_POST['founded_date'] ?? null;
+        $founded_date = !empty($_POST['founded_date']) ? $_POST['founded_date'] : null;
 
         if ($name && $login_name) {
             // Validation
