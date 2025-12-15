@@ -22,53 +22,49 @@ function save_club($club_data)
 {
     $pdo = get_db();
 
-    // Check if update or insert
-    $is_update = false;
-    if (isset($club_data['id']) && $club_data['id']) {
-        // Check if exists
-        if (get_club($club_data['id'])) {
-            $is_update = true;
-        }
-    }
-
-    if ($is_update) {
+    // Check if ID is present and numeric (Update)
+    // If ID is empty/null, it's an Insert logic for Auto-Increment
+    if (!empty($club_data['id']) && is_numeric($club_data['id'])) {
         $sql = "UPDATE clubs SET 
-                name = :name, 
-                shortname = :shortname, 
-                login_name = :login_name, 
-                password_hash = :password_hash, 
-                color = :color, 
-                active = :active, 
-                logo = :logo,
-                contact_email = :contact_email,
-                website = :website,
-                president = :president,
-                vice_president = :vice_president,
-                meeting_place = :meeting_place,
-                meeting_time = :meeting_time,
+            name = :name, shortname = :shortname, login_name = :login_name, 
+            color = :color, active = :active, logo = :logo,
+            contact_email = :contact_email, website = :website, 
+            president = :president, vice_president = :vice_president, 
+            meeting_place = :meeting_place, meeting_time = :meeting_time, 
+            founded_date = :founded_date
+            WHERE id = :id";
+
+        // Add password update only if hash is provided
+        if (!empty($club_data['password_hash'])) {
+            $sql = "UPDATE clubs SET 
+                name = :name, shortname = :shortname, login_name = :login_name, 
+                password_hash = :password_hash,
+                color = :color, active = :active, logo = :logo,
+                contact_email = :contact_email, website = :website, 
+                president = :president, vice_president = :vice_president, 
+                meeting_place = :meeting_place, meeting_time = :meeting_time, 
                 founded_date = :founded_date
                 WHERE id = :id";
-    } else {
-        $sql = "INSERT INTO clubs (name, shortname, login_name, password_hash, color, active, logo, 
-                contact_email, website, president, vice_president, meeting_place, meeting_time, founded_date) 
-                VALUES (:name, :shortname, :login_name, :password_hash, :color, :active, :logo, 
-                :contact_email, :website, :president, :vice_president, :meeting_place, :meeting_time, :founded_date)";
-
-        if (isset($club_data['id']) && !empty($club_data['id'])) {
-            $sql = "INSERT INTO clubs (id, name, shortname, login_name, password_hash, color, active, logo, 
-                contact_email, website, president, vice_president, meeting_place, meeting_time, founded_date) 
-                VALUES (:id, :name, :shortname, :login_name, :password_hash, :color, :active, :logo, 
-                :contact_email, :website, :president, :vice_president, :meeting_place, :meeting_time, :founded_date)";
         }
+    } else {
+        // Insert
+        // If ID column is auto_increment, we do not specify it.
+        $sql = "INSERT INTO clubs (
+            name, shortname, login_name, password_hash, color, active, logo,
+            contact_email, website, president, vice_president, meeting_place, meeting_time, founded_date
+        ) VALUES (
+            :name, :shortname, :login_name, :password_hash, :color, :active, :logo,
+            :contact_email, :website, :president, :vice_president, :meeting_place, :meeting_time, :founded_date
+        )";
     }
 
     $stmt = $pdo->prepare($sql);
 
     $params = [
         ':name' => $club_data['name'],
-        ':shortname' => $club_data['shortname'] ?? '',
-        ':login_name' => $club_data['login_name'] ?? null,
-        ':password_hash' => $club_data['password_hash'] ?? null,
+        ':shortname' => $club_data['shortname'],
+        ':login_name' => $club_data['login_name'],
+        ':password_hash' => $club_data['password_hash'] ?? '', // Required for Insert
         ':color' => $club_data['color'] ?? '#000000',
         ':active' => isset($club_data['active']) && $club_data['active'] ? 1 : 0,
         ':logo' => $club_data['logo'] ?? null,
@@ -81,11 +77,27 @@ function save_club($club_data)
         ':founded_date' => $club_data['founded_date'] ?? null
     ];
 
-    if ($is_update || (isset($club_data['id']) && !empty($club_data['id']))) {
+    if (!empty($club_data['id']) && is_numeric($club_data['id'])) {
         $params[':id'] = $club_data['id'];
+
+        // If updating but no password provided, remove it from params if query doesn't use it
+        // The logic above switches query based on password_hash. 
+        // If password_hash is empty in update, do not bind it?
+        // Wait, the UPDATE query logic is split.
+        // Let's use strict logic:
+
+        if (empty($club_data['password_hash'])) {
+            unset($params[':password_hash']);
+        }
     }
 
-    return $stmt->execute($params);
+    if ($stmt->execute($params)) {
+        if (empty($club_data['id']) || !is_numeric($club_data['id'])) {
+            return $pdo->lastInsertId();
+        }
+        return true;
+    }
+    return false;
 }
 
 function delete_club($id)

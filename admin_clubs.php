@@ -14,8 +14,8 @@ $success = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     Security::verifyCsrfToken();
     if ($_POST['action'] === 'save_club') {
-        $id = $_POST['id'] ?: uniqid();
-        $is_new = empty($_POST['id']);
+        $id = $_POST['id'] ?? '';
+        $is_new = empty($id);
         $name = trim($_POST['name']);
 
         // ... params ...
@@ -60,53 +60,88 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 'founded_date' => $founded_date
             ];
 
-            // Handle Logo Upload
-            if ($logo_data) {
-                // Remove data:image/png;base64, prefix
-                $logo_data = preg_replace('#^data:image/\w+;base64,#i', '', $logo_data);
-                $decoded = base64_decode($logo_data);
-
-                if ($decoded) {
-                    // FIX: Path Traversal
-// Sanitize ID to ensure it's safe for filename
-                    $safe_id = Security::sanitizeFilename($id);
-                    $filename = 'logo_' . $safe_id . '.png';
-                    $upload_dir = __DIR__ . '/uploads/logos/';
-
-                    if (!is_dir($upload_dir)) {
-                        mkdir($upload_dir, 0777, true);
-                    }
-
-                    $filepath = $upload_dir . $filename;
-                    if (@file_put_contents($filepath, $decoded)) {
-                        $club_data['logo'] = $filename;
-                    } else {
-                        $error = "Fehler beim Speichern des Logos (Rechteproblem?).";
-                    }
-                }
-            } else {
-                // Keep existing logo
+            // 1. Handle Password & Existing Logo (for Updates)
+            if ($id) {
                 $existing = get_club($id);
-                if ($existing && isset($existing['logo'])) {
+                if (!$password) {
+                    $club_data['password_hash'] = $existing['password_hash'];
+                } else {
+                    $club_data['password_hash'] = password_hash($password, PASSWORD_DEFAULT);
+                }
+
+                // Preserve existing logo if no new one
+                if (empty($logo_data) && isset($existing['logo'])) {
                     $club_data['logo'] = $existing['logo'];
                 }
-            }
-
-            // Only update password if provided or if it's a new club
-            if ($password) {
-                $club_data['password_hash'] = password_hash($password, PASSWORD_DEFAULT);
             } else {
-                // Keep existing password if editing
-                $existing = get_club($id);
-                if ($existing) {
-                    $club_data['password_hash'] = $existing['password_hash'];
+                // New Club
+                if ($password) {
+                    $club_data['password_hash'] = password_hash($password, PASSWORD_DEFAULT);
                 } else {
                     $error = "Passwort ist für neue Clubs erforderlich.";
                 }
             }
 
+            // 2. Save
             if (!$error) {
-                if (save_club($club_data)) {
+                // For updates or inserts WITHOUT new logo, we can save directly (unless insert needs ID for logo?).
+                // If it is NEW and has LOGO, we must save first to get ID.
+
+                $final_id = null;
+                $saved = false;
+
+                if ($is_new && $logo_data) {
+                    // Two-step save
+                    // Step A: Save without logo
+                    $saved_id = save_club($club_data); // Returns ID
+                    if ($saved_id) {
+                        $final_id = $saved_id;
+                        $saved = true;
+
+                        // Step B: Handle Logo
+                        $logo_data = preg_replace('#^data:image/\w+;base64,#i', '', $logo_data);
+                        $decoded = base64_decode($logo_data);
+                        if ($decoded) {
+                            $safe_id = Security::sanitizeFilename($final_id);
+                            $filename = 'logo_' . $safe_id . '.png';
+                            $upload_dir = __DIR__ . '/uploads/logos/';
+                            if (!is_dir($upload_dir))
+                                mkdir($upload_dir, 0777, true);
+
+                            $filepath = $upload_dir . $filename;
+                            if (@file_put_contents($filepath, $decoded)) {
+                                $current = get_club($final_id);
+                                $current['logo'] = $filename;
+                                save_club($current);
+                            }
+                        }
+                    }
+                } else {
+                    // Update OR New-without-logo
+                    // If Update+Logo: Handle logo processing here before saving
+                    if ($id && $logo_data) {
+                        $logo_data = preg_replace('#^data:image/\w+;base64,#i', '', $logo_data);
+                        $decoded = base64_decode($logo_data);
+                        if ($decoded) {
+                            $safe_id = Security::sanitizeFilename($id);
+                            $filename = 'logo_' . $safe_id . '.png';
+                            $upload_dir = __DIR__ . '/uploads/logos/';
+                            if (!is_dir($upload_dir))
+                                mkdir($upload_dir, 0777, true);
+
+                            $filepath = $upload_dir . $filename;
+                            if (@file_put_contents($filepath, $decoded)) {
+                                $club_data['logo'] = $filename;
+                            }
+                        }
+                    }
+
+                    if (save_club($club_data)) {
+                        $saved = true;
+                    }
+                }
+
+                if ($saved) {
                     $action_type = $is_new ? 'CLUB_CREATE' : 'CLUB_UPDATE';
                     system_log($action_type, "Name: $name, Login: $login_name");
                     $success = "Club gespeichert.";
