@@ -21,6 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         // ... params ...
         $shortname = trim($_POST['shortname']);
         $color = $_POST['color'];
+        $color2 = $_POST['color2'] ?? null;
         $login_name = trim($_POST['login_name']);
         $password = $_POST['password'];
         $active = isset($_POST['active']);
@@ -49,6 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 'name' => $name,
                 'shortname' => $shortname,
                 'color' => $color,
+                'color2' => $color2,
                 'login_name' => $login_name,
                 'active' => $active,
                 'contact_email' => $contact_email,
@@ -242,8 +244,17 @@ $clubs = get_clubs();
                                 <td><?php echo htmlspecialchars($club['name']); ?></td>
                                 <td><?php echo htmlspecialchars($club['shortname']); ?></td>
                                 <td><?php echo htmlspecialchars($club['login_name']); ?></td>
-                                <td><span class="badge rounded-pill"
-                                        style="background-color: <?php echo htmlspecialchars($club['color']); ?>; width: 24px; height: 24px;">&nbsp;</span>
+                                <td>
+                                    <?php 
+                                    $c1 = $club['color'];
+                                    $c2 = $club['color2'] ?? null;
+                                    $style = "background-color: $c1;";
+                                    if ($c2) {
+                                        $style = "background: linear-gradient(135deg, $c1 50%, $c2 50%);";
+                                    }
+                                    ?>
+                                    <span class="badge rounded-circle shadow-sm border"
+                                        style="<?php echo $style; ?> width: 24px; height: 24px; display: inline-block;"></span>
                                 </td>
                                 <td><?php echo $club['active'] ? '<span class="badge bg-success bg-opacity-25 text-success border border-success">Aktiv</span>' : '<span class="badge bg-danger bg-opacity-25 text-danger border border-danger">Inaktiv</span>'; ?>
                                 </td>

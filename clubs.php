@@ -43,6 +43,8 @@ $clubs = get_clubs();
             border: 4px solid rgba(0, 0, 0, 0.5);
             margin-top: -40px;
             background: #000;
+            position: relative;
+            z-index: 10;
         }
     </style>
 </head>
@@ -85,7 +87,8 @@ $clubs = get_clubs();
 
                             <h4 class="mt-3 mb-1"><?php echo htmlspecialchars($club['name']); ?></h4>
                             <div class="text-muted small mb-3 text-uppercase fw-bold">
-                                <?php echo htmlspecialchars($club['shortname']); ?></div>
+                                <?php echo htmlspecialchars($club['shortname']); ?>
+                            </div>
 
                             <div class="text-start mt-4 px-2">
                                 <?php if ($club['president']): ?>
