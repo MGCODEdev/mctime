@@ -22,6 +22,24 @@ $is_super_admin = is_super_admin();
             <h1 class="text-uppercase fw-bold mb-4">Release Notes</h1>
 
             <div class="mb-5">
+                <h3 class="text-warning border-bottom border-warning pb-2 mb-3">v1.3.0 - Club Management & Visuals</h3>
+                <ul class="list-unstyled text-light fw-light">
+                    <li class="mb-2">🎭 <strong>Club-Design:</strong> Unterstützung für zwei Clubfarben (Dual-Color) mit
+                        Gradient-Anzeige in UI und Badges.</li>
+                    <li class="mb-2">🤳 <strong>Self-Service:</strong> Clubs können ihr eigenes Profil (Logo, Kontakt)
+                        bearbeiten.</li>
+                    <li class="mb-2">👥 <strong>Interne Übersicht:</strong> Neue Club-Liste exklusiv für eingeloggte
+                        Mitglieder.</li>
+                    <li class="mb-2">🛡️ <strong>Security-Fix:</strong> Kritische Datenlecks im Frontend geschlossen.
+                    </li>
+                    <li class="mb-2">⚡ <strong>Admin-Power:</strong> Super-Admins haben vollen Schreibzugriff auf alle
+                        Club-Daten.</li>
+                    <li class="mb-2">📛 <strong>UI-Update:</strong> Tabs umbenannt in "Veranstaltungen" / "Clubabende".
+                    </li>
+                </ul>
+            </div>
+
+            <div class="mb-5">
                 <h3 class="text-info border-bottom border-info pb-2 mb-3">v1.2.2 - System Logging</h3>
                 <ul class="list-unstyled text-light fw-light">
                     <li class="mb-2">📜 <strong>System-Logs:</strong> Detaillierte Protokollierung aller kritischen
