@@ -27,7 +27,7 @@ function save_club($club_data)
     if (!empty($club_data['id']) && is_numeric($club_data['id'])) {
         $sql = "UPDATE clubs SET 
             name = :name, shortname = :shortname, login_name = :login_name, 
-            color = :color, active = :active, logo = :logo,
+            color = :color, color2 = :color2, active = :active, logo = :logo,
             contact_email = :contact_email, website = :website, 
             president = :president, vice_president = :vice_president, 
             meeting_place = :meeting_place, meeting_time = :meeting_time, 
@@ -39,7 +39,7 @@ function save_club($club_data)
             $sql = "UPDATE clubs SET 
                 name = :name, shortname = :shortname, login_name = :login_name, 
                 password_hash = :password_hash,
-                color = :color, active = :active, logo = :logo,
+                color = :color, color2 = :color2, active = :active, logo = :logo,
                 contact_email = :contact_email, website = :website, 
                 president = :president, vice_president = :vice_president, 
                 meeting_place = :meeting_place, meeting_time = :meeting_time, 
@@ -50,10 +50,10 @@ function save_club($club_data)
         // Insert
         // If ID column is auto_increment, we do not specify it.
         $sql = "INSERT INTO clubs (
-            name, shortname, login_name, password_hash, color, active, logo,
+            name, shortname, login_name, password_hash, color, color2, active, logo,
             contact_email, website, president, vice_president, meeting_place, meeting_time, founded_date
         ) VALUES (
-            :name, :shortname, :login_name, :password_hash, :color, :active, :logo,
+            :name, :shortname, :login_name, :password_hash, :color, :color2, :active, :logo,
             :contact_email, :website, :president, :vice_president, :meeting_place, :meeting_time, :founded_date
         )";
     }
@@ -66,6 +66,7 @@ function save_club($club_data)
         ':login_name' => $club_data['login_name'],
         ':password_hash' => $club_data['password_hash'] ?? '', // Required for Insert
         ':color' => $club_data['color'] ?? '#000000',
+        ':color2' => $club_data['color2'] ?? null,
         ':active' => isset($club_data['active']) && $club_data['active'] ? 1 : 0,
         ':logo' => $club_data['logo'] ?? null,
         ':contact_email' => $club_data['contact_email'] ?? null,

@@ -90,5 +90,22 @@ class Security
         $clean = str_replace('..', '', $clean);
         return $clean;
     }
+    /**
+     * Filter club data for public exposure.
+     * Removes sensitive fields like login_name, password_hash, etc.
+     */
+    public static function filterClubPublic($club)
+    {
+        return [
+            'id' => $club['id'],
+            'name' => $club['name'],
+            'shortname' => $club['shortname'],
+            'color' => $club['color'],
+            'color2' => $club['color2'] ?? null,
+            'logo' => $club['logo'] ?? null,
+            // Add other safe fields if needed for public view (e.g. website?)
+            // For now, only visual identity is needed for calendar.
+        ];
+    }
 }
 ?>

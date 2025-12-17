@@ -85,11 +85,12 @@ $is_member = is_logged_in(); // True for Club Admin & Super Admin
 
         <ul class="nav nav-pills mb-3 justify-content-center" id="calendarTabs">
             <li class="nav-item">
-                <a class="nav-link active" id="tab-open-road" href="#" onclick="switchCalendar('public')">Open Road
+                <a class="nav-link active" id="tab-open-road" href="#"
+                    onclick="switchCalendar('public')">Veranstaltungen
                     (Öffentlich)</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" id="tab-iron-circle" href="#" onclick="switchCalendar('internal')">Iron Circle
+                <a class="nav-link" id="tab-iron-circle" href="#" onclick="switchCalendar('internal')">Clubabende
                     (Intern)</a>
             </li>
             <li class="nav-item">
@@ -130,25 +131,24 @@ $is_member = is_logged_in(); // True for Club Admin & Super Admin
                     $count = 0;
 
                     foreach ($day_events as $event) {
-                        // Logic moved to JS, but for server-side rendering we render ALL valid events for the user context
-                        // However, to make toggle instant, it's better to render all and hide via CSS/JS or re-render.
-                        // Better approach: Render logic in PHP? No, JS toggle is smoother.
-                        // Let's modify the loop to output data-attributes for visibility.
-                
-                        // BUT: We don't want to expose internal events to public users in HTML.
-                        // So: If NOT member, filter internal events out strictly.
-                        // if (!$is_member && ($event['visibility'] ?? 'public') === 'internal')
-                        //     continue;
-                
                         if ($count < $max_display) {
                             $club = $clubs_map[$event['club_id']] ?? ['color' => '#666', 'shortname' => '?'];
-                            $bg_color = $club['color'] ?: '#666';
+                            $c1 = $club['color'] ?: '#666';
+                            $c2 = $club['color2'] ?? null;
+
+                            // Background Style (Gradient if 2 colors)
+                            if ($c2) {
+                                $bg_style = "background: linear-gradient(135deg, $c1 50%, $c2 50%);";
+                            } else {
+                                $bg_style = "background-color: " . htmlspecialchars($c1) . ";";
+                            }
+
                             $vis = $event['visibility'] ?? 'public';
 
                             // Add 'internal-event' class if internal
                             $vis_class = $vis === 'internal' ? 'internal-event' : 'public-event';
 
-                            echo '<div class="event-badge ' . $vis_class . '" style="background-color: ' . htmlspecialchars($bg_color) . ';" title="' . htmlspecialchars($event['title']) . '">';
+                            echo '<div class="event-badge ' . $vis_class . '" style="' . $bg_style . '" title="' . htmlspecialchars($event['title']) . '">';
 
                             // Logo
                             if (isset($club['logo']) && file_exists('uploads/logos/' . $club['logo'])) {
@@ -190,7 +190,14 @@ $is_member = is_logged_in(); // True for Club Admin & Super Admin
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         const eventsByDay = <?php echo json_encode($events_by_day); ?>;
-        const clubsMap = <?php echo json_encode($clubs_map); ?>;
+        // SECURITY FIX: Filter club data before exposing to JS
+        <?php
+        $safe_clubs_map = [];
+        foreach ($clubs_map as $id => $c) {
+            $safe_clubs_map[$id] = Security::filterClubPublic($c);
+        }
+        ?>
+        const clubsMap = <?php echo json_encode($safe_clubs_map); ?>;
         const monthNames = <?php echo json_encode($month_names); ?>;
         const currentYear = <?php echo $year; ?>;
         const currentMonth = <?php echo $month; ?>;
@@ -216,9 +223,6 @@ $is_member = is_logged_in(); // True for Club Admin & Super Admin
             document.querySelectorAll('.public-event').forEach(el => {
                 el.style.display = (mode === 'public' || mode === 'all') ? 'block' : 'none';
             });
-
-            // Re-calc hidden counts would be complex, but for now simple toggle is fine.
-            // A reload would be cleaner but slower. Let's rely on CSS/JS toggle.
         }
 
         // Run once on load to hide internal if default is public
@@ -245,10 +249,39 @@ $is_member = is_logged_in(); // True for Club Admin & Super Admin
 
                     const club = clubsMap[event.club_id] || { name: 'Unbekannt', color: '#666' };
 
+                    // Dual Color Logic
+                    const c1 = club.color;
+                    const c2 = club.color2;
+                    let borderStyle = `border-color: ${c1} !important;`;
+                    let logoBorder = `border: 2px solid ${c1};`;
+                    let gradientBg = ''; // For something else?
+
+                    if (c2) {
+                        // For border, we can't easily do gradient border in pure CSS border-color.
+                        // Instead, we can use border-image or just stick to Primary color for border.
+                        // Or use a background gradient on the wrapper.
+                        // Let's use border-image for valid modern browsers or fallback.
+                        // borderStyle = `border-image: linear-gradient(to bottom, ${c1}, ${c2}) 1; border-width: 4px; border-style: solid;`;
+                        // But border-radius and border-image conflict.
+                        // Simple approach: Use C1. Or split?
+                        // Let's stick to C1 for border to keep it clean, OR use a small indicator.
+                        // User requirement: "Flaggenartig (nebeneinander ... konsistent UI)".
+                        // Maybe the LOGO border should be split?
+
+                        logoBorder = `background: linear-gradient(135deg, ${c1} 50%, ${c2} 50%); padding: 3px; border-radius: 50%;`;
+                        // Note: To show gradient ring, we put image inside a div with gradient padding.
+                    }
+
                     // Logo Logic
                     let logoHtml = '';
                     if (club.logo) {
-                        logoHtml = `<img src="uploads/logos/${club.logo}" style="width: 40px; height: 40px; border-radius: 50%; margin-right: 12px; object-fit: cover; border: 2px solid ${club.color};">`;
+                        if (c2) {
+                            logoHtml = `<div style="display: inline-block; ${logoBorder} margin-right: 12px; vertical-align: middle; width: 46px; height: 46px;">
+                                <img src="uploads/logos/${club.logo}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; display: block; background: #000;">
+                            </div>`;
+                        } else {
+                            logoHtml = `<img src="uploads/logos/${club.logo}" style="width: 40px; height: 40px; border-radius: 50%; margin-right: 12px; object-fit: cover; border: 2px solid ${club.color};">`;
+                        }
                     } else {
                         // Fallback avatar
                         logoHtml = `<div style="width: 40px; height: 40px; border-radius: 50%; margin-right: 12px; background-color: ${club.color}; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white;">${club.shortname.substring(0, 2)}</div>`;
@@ -256,7 +289,7 @@ $is_member = is_logged_in(); // True for Club Admin & Super Admin
 
                     html += `
                         <div class="card mb-3 border-0" style="background-color: rgba(15, 23, 42, 0.8); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);">
-                            <div class="card-body border-start border-4" style="border-color: ${club.color} !important; padding: 1.5rem;">
+                            <div class="card-body border-start border-4" style="${borderStyle} padding: 1.5rem;">
                                 <div class="d-flex align-items-center mb-3">
                                     ${logoHtml}
                                     <div>

@@ -1,0 +1,25 @@
+# Vendor
+vendor/
+node_modules/
+
+# Config
+inc/config.php
+
+# Data Persistence (Do NOT ignore the directory itself if structure is needed, but ignore contents if dynamic)
+# BUT user wants data/ to be persistent and NOT overwritten by git updates.
+# If this repo IS the source of truth for code, we usually Ignore data/ so local data stays local.
+data/*
+!data/.gitkeep
+!data/README.md
+
+# Uploads
+uploads/*
+!uploads/.gitkeep
+!uploads/logos/.gitkeep
+
+# System
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

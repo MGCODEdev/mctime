@@ -37,6 +37,7 @@ function init_db($pdo)
         login_name VARCHAR(100) UNIQUE,
         password_hash VARCHAR(255),
         color VARCHAR(20),
+        color2 VARCHAR(20),
         active TINYINT DEFAULT 1,
         logo VARCHAR(255),
         contact_email VARCHAR(255),

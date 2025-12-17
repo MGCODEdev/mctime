@@ -300,10 +300,18 @@ $clubs = get_clubs();
                                             <input type="text" class="form-control" name="shortname"
                                                 id="club_shortname">
                                         </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Farbe</label>
-                                            <input type="color" class="form-control form-control-color w-100"
-                                                name="color" id="club_color" value="#d32f2f">
+                                        <div class="row">
+                                            <div class="col-6 mb-3">
+                                                <label class="form-label">Farbe 1</label>
+                                                <input type="color" class="form-control form-control-color w-100"
+                                                    name="color" id="club_color" value="#d32f2f">
+                                            </div>
+                                            <div class="col-6 mb-3">
+                                                <label class="form-label">Farbe 2 <small
+                                                        class="text-muted">(Optional)</small></label>
+                                                <input type="color" class="form-control form-control-color w-100"
+                                                    name="color2" id="club_color2" value="#ffffff">
+                                            </div>
                                         </div>
                                         <div class="mb-3">
                                             <label class="form-label">Login Name</label>
@@ -438,6 +446,7 @@ $clubs = get_clubs();
             document.getElementById('club_name').value = club.name;
             document.getElementById('club_shortname').value = club.shortname;
             document.getElementById('club_color').value = club.color;
+            document.getElementById('club_color2').value = club.color2 || '#ffffff';
             document.getElementById('club_login_name').value = club.login_name;
             document.getElementById('club_active').checked = club.active;
             document.getElementById('club_password').value = '';
@@ -479,6 +488,7 @@ $clubs = get_clubs();
             document.getElementById('club_name').value = '';
             document.getElementById('club_shortname').value = '';
             document.getElementById('club_color').value = '#d32f2f';
+            document.getElementById('club_color2').value = '#ffffff';
             document.getElementById('club_login_name').value = '';
             document.getElementById('club_active').checked = true;
             document.getElementById('club_password').value = '';
